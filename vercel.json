@@ -3,8 +3,14 @@
   "framework": null,
   "outputDirectory": "public",
   "functions": {
-    "api/**/*.ts": {
+    "api/index.ts": {
       "maxDuration": 30
     }
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api?__path=$1"
+    }
+  ]
 }

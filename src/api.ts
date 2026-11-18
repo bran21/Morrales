@@ -299,6 +299,14 @@ export async function handleApiRequest(
   res: ServerResponse
 ): Promise<void> {
   const url = new URL(req.url ?? "/api", "http://127.0.0.1");
+  const rewrittenPath = url.searchParams.get("__path");
+  if (rewrittenPath !== null) {
+    const cleanPath = rewrittenPath.replace(/^\/+/, "");
+    if (url.pathname === "/api" || url.pathname === "/api/index") {
+      url.pathname = cleanPath ? `/api/${cleanPath}` : "/api";
+    }
+    url.searchParams.delete("__path");
+  }
   try {
     await handleApi(req, res, url);
   } catch (err) {

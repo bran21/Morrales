@@ -2,7 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#f7f9fc" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
     <title>Morrales — Ammora Launchpad &amp; GIWA Bridge</title>
     <link rel="icon" href="/morrales-logo.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -43,6 +45,12 @@
 
       * {
         box-sizing: border-box;
+      }
+
+      html,
+      body {
+        overflow-x: hidden;
+        -webkit-tap-highlight-color: transparent;
       }
 
       body {
@@ -91,6 +99,7 @@
         background: linear-gradient(180deg, #ffffff 0%, #f1f6ff 100%);
         border: 1px solid var(--keyline);
         cursor: grab;
+        touch-action: none;
       }
 
       .stage-3d:active {
@@ -346,7 +355,8 @@
         position: absolute;
         top: calc(100% + 10px);
         right: 0;
-        width: 300px;
+        width: 320px;
+        max-width: calc(100vw - 32px);
         background: var(--surface);
         border: 1px solid var(--keyline);
         border-radius: 14px;
@@ -362,12 +372,77 @@
         display: flex;
       }
 
+      .wallet-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 90;
+        background: rgba(15, 23, 42, 0.36);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+      }
+
+      .wallet-modal-backdrop.open {
+        display: flex;
+      }
+
+      .wallet-modal {
+        width: 100%;
+        max-width: 360px;
+        background: var(--surface);
+        border: 1px solid var(--keyline);
+        border-radius: 16px;
+        padding: 18px;
+        box-shadow: 0 20px 44px rgba(15, 23, 42, 0.16);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .wallet-choice {
+        appearance: none;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 11px;
+        border: 1px solid var(--keyline);
+        background: var(--surface-3);
+        color: var(--ink);
+        font-family: var(--font-sans);
+        font-size: 0.88rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.14s ease;
+      }
+
+      .wallet-choice:hover {
+        border-color: var(--blue-border);
+        background: var(--blue-soft);
+      }
+
+      .wallet-choice-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .wallet-choice img {
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+      }
+
       @media (max-width: 960px) {
         .topbar {
           grid-template-columns: 1fr auto;
           row-gap: 10px;
         }
-        .nav-tabs {
+        .topbar .nav-tabs {
           grid-column: 1 / -1;
           justify-self: stretch;
           justify-content: center;
@@ -501,6 +576,17 @@
         padding: 6px 10px;
         font-size: 0.77rem;
         border-radius: 7px;
+      }
+
+      .btn-danger-soft {
+        border-color: var(--err-border);
+        background: var(--err-bg);
+        color: var(--err);
+      }
+
+      .btn-danger-soft:hover:not(:disabled) {
+        background: #fee2e2;
+        border-color: #fca5a5;
       }
 
       /* TAGS / PILLS */
@@ -1023,6 +1109,12 @@
         color: var(--ink-3);
       }
 
+      .stats-3-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+
       @media (max-width: 900px) {
         .footer-grid {
           grid-template-columns: 1fr 1fr;
@@ -1040,13 +1132,162 @@
         }
       }
 
+      @media (max-width: 768px) {
+        .shell {
+          padding: 10px 12px 92px;
+          gap: 12px;
+        }
+
+        .topbar {
+          top: 8px;
+          padding: 8px 12px;
+          gap: 10px;
+          grid-template-columns: 1fr auto;
+          backdrop-filter: none;
+          background: rgba(255, 255, 255, 0.96);
+        }
+
+        .topbar .nav-tabs {
+          position: fixed;
+          left: 12px;
+          right: 12px;
+          bottom: max(10px, env(safe-area-inset-bottom));
+          z-index: 50;
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 4px;
+          padding: 5px;
+          background: rgba(255, 255, 255, 0.94);
+          backdrop-filter: blur(16px);
+          border: 1px solid var(--keyline);
+          border-radius: 14px;
+          box-shadow: 0 10px 28px rgba(15, 23, 42, 0.14);
+        }
+
+        .topbar .nav-tab {
+          padding: 9px 6px;
+          font-size: 0.76rem;
+          text-align: center;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .wallet-popover {
+          position: fixed;
+          left: 12px;
+          right: 12px;
+          top: 68px;
+          width: auto;
+          max-width: none;
+        }
+      }
+
       @media (max-width: 640px) {
-        .kpi-grid,
+        .card {
+          padding: 14px;
+        }
+
+        .brand-tag,
+        #netLabel {
+          display: none;
+        }
+
+        .net-pill-btn {
+          padding: 8px 10px;
+        }
+
+        .hero {
+          gap: 12px;
+        }
+
+        .hero h1 {
+          font-size: 1.2rem;
+        }
+
+        .hero-3d-wrap {
+          width: 100%;
+          justify-content: space-between;
+          gap: 10px;
+        }
+
+        #hero3dCanvas {
+          width: 78px;
+          height: 78px;
+          border-radius: 12px;
+        }
+
+        .hero-3d-wrap .btn {
+          flex: 1;
+          padding: 10px 12px;
+        }
+
+        .kpi-grid {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 8px;
+        }
+
+        .kpi-card {
+          padding: 11px 12px;
+        }
+
+        .kpi-val {
+          font-size: 1.12rem;
+        }
+
+        .filter-bar {
+          padding: 10px;
+          gap: 8px;
+        }
+
+        .search-wrap {
+          max-width: none;
+          flex: 1 1 100%;
+        }
+
         .curves-grid,
         .trending-grid,
         .addons-grid,
+        .footer-grid,
         .stepper {
           grid-template-columns: 1fr;
+        }
+
+        .stats-3-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .stats-3-grid > :last-child {
+          grid-column: 1 / -1;
+        }
+
+        .bridge-hero h1 {
+          font-size: 1.38rem;
+        }
+
+        .bridge-3d-wrap {
+          height: 92px;
+        }
+
+        .stage-3d {
+          height: 185px;
+        }
+
+        .disclaimer-box {
+          padding: 12px;
+          font-size: 0.75rem;
+          overflow-wrap: anywhere;
+        }
+
+        input,
+        select,
+        textarea {
+          font-size: 16px;
+        }
+      }
+
+      @media (max-width: 420px) {
+        .wallet-bal {
+          display: none;
         }
       }
     </style>
@@ -1105,25 +1346,39 @@
 
           <div id="walletPopover" class="wallet-popover" role="dialog" aria-label="Connected wallet">
             <div class="row">
-              <span class="muted" style="font-weight: 600">Connected Wallet</span>
+              <div style="display: flex; align-items: center; gap: 6px">
+                <span id="popWalletName" class="muted" style="font-weight: 600">Wallet</span>
+                <span id="popNetBadge" class="tag blue" style="font-size: 0.68rem; padding: 2px 7px">GIWA Sepolia</span>
+              </div>
               <button id="copyAddrBtn" class="btn btn-sm" type="button">Copy Address</button>
             </div>
             <div id="fullAddrText" class="mono muted" style="font-size: 0.72rem; word-break: break-all">--</div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
-              <div class="card-subtle">
-                <div class="muted" style="font-size: 0.7rem">GIWA ETH</div>
-                <div id="popGiwaEth" class="mono" style="font-weight: 600; font-size: 0.85rem">--</div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px">
+              <div class="card-subtle" style="padding: 8px 10px">
+                <div class="muted" style="font-size: 0.67rem">GIWA ETH</div>
+                <div id="popGiwaEth" class="mono" style="font-weight: 600; font-size: 0.79rem">--</div>
               </div>
-              <div class="card-subtle">
-                <div class="muted" style="font-size: 0.7rem">GIWA WETH</div>
-                <div id="popGiwaWeth" class="mono" style="font-weight: 600; font-size: 0.85rem">--</div>
+              <div class="card-subtle" style="padding: 8px 10px">
+                <div class="muted" style="font-size: 0.67rem">GIWA WETH</div>
+                <div id="popGiwaWeth" class="mono" style="font-weight: 600; font-size: 0.79rem">--</div>
+              </div>
+              <div class="card-subtle" style="padding: 8px 10px">
+                <div class="muted" style="font-size: 0.67rem">Sepolia ETH</div>
+                <div id="popSepoliaEth" class="mono" style="font-weight: 600; font-size: 0.79rem">--</div>
               </div>
             </div>
 
-            <div class="row" style="gap: 6px">
-              <button id="popBridgeBtn" class="btn btn-blue btn-sm" type="button" style="flex: 1">Bridge ETH</button>
-              <a id="popExplorerLink" class="btn btn-sm" href="https://sepolia-explorer.giwa.io" target="_blank" rel="noreferrer" style="flex: 1">Explorer &#8599;</a>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px">
+              <button id="popSwitchNetBtn" class="btn btn-sm" type="button">Switch to Sepolia</button>
+              <button id="popWrapBtn" class="btn btn-sm" type="button">Wrap / Trade</button>
+              <button id="popBridgeBtn" class="btn btn-blue btn-sm" type="button">Bridge ETH</button>
+              <a id="popExplorerLink" class="btn btn-sm" href="https://sepolia-explorer.giwa.io" target="_blank" rel="noreferrer">Explorer &#8599;</a>
+            </div>
+
+            <div class="row" style="gap: 6px; padding-top: 4px; border-top: 1px solid var(--keyline)">
+              <button id="popSwitchAcctBtn" class="btn btn-sm" type="button" style="flex: 1">Switch Account</button>
+              <button id="disconnectBtn" class="btn btn-danger-soft btn-sm" type="button" style="flex: 1">Disconnect</button>
             </div>
           </div>
         </div>
@@ -1320,7 +1575,7 @@
               <select id="tradeCurveSelect"></select>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px">
+            <div class="stats-3-grid" style="margin-bottom: 12px">
               <div class="card-subtle">
                 <div class="muted" style="font-size: 0.72rem">GIWA ETH</div>
                 <div class="mono" style="font-weight: 600; font-size: 0.9rem" id="tradeEthBal">--</div>
@@ -1375,7 +1630,7 @@
               <div class="row">
                 <span class="muted" style="font-weight: 600; color: var(--ink-2)">Need WETH?</span>
                 <div class="row" style="gap: 6px">
-                  <input id="wrapAmtInput" class="mono" type="text" value="0.01" style="width: 84px; padding: 5px 8px; font-size: 0.8rem" />
+                  <input id="wrapAmtInput" class="mono" type="text" inputmode="decimal" value="0.01" style="width: 84px; padding: 5px 8px; font-size: 0.85rem" />
                   <button id="wrapBtn" class="btn btn-sm btn-blue" type="button">Wrap ETH</button>
                   <button id="unwrapBtn" class="btn btn-sm" type="button">Unwrap</button>
                 </div>
@@ -1683,15 +1938,75 @@
       </footer>
     </div>
 
+    <div id="walletModal" class="wallet-modal-backdrop" role="dialog" aria-modal="true" aria-label="Choose wallet">
+      <div class="wallet-modal">
+        <div class="row">
+          <strong style="font-size: 0.98rem">Select Wallet</strong>
+          <button id="closeWalletModalBtn" class="btn btn-sm" type="button">Close</button>
+        </div>
+        <div class="muted" style="font-size: 0.78rem">
+          Choose which browser wallet handles signing and transactions.
+        </div>
+        <div id="walletChoicesList" style="display: flex; flex-direction: column; gap: 8px"></div>
+      </div>
+    </div>
+
     <script>
       const SEPOLIA_HEX = "0xaa36a7";
       const GIWA_HEX = "0x164ce";
       const HISTORY_KEY = "morrales_bridge_history_v1";
+      const WALLET_DISCONNECTED_KEY = "morrales_wallet_disconnected_v1";
+      const WALLET_CONNECTED_KEY = "morrales_wallet_connected_v1";
+      const WALLET_RDNS_KEY = "morrales_wallet_rdns_v1";
+
+      const discoveredProviders = new Map();
+      let boundProvider = null;
+
+      function registerProvider(info, provider) {
+        if (!provider || typeof provider.request !== "function") return;
+        const rdns = info?.rdns || info?.name || "injected";
+        if (!discoveredProviders.has(rdns)) {
+          discoveredProviders.set(rdns, {
+            info: { rdns, name: info?.name || "Browser Wallet", icon: info?.icon || "" },
+            provider,
+          });
+        }
+      }
+
+      window.addEventListener("eip6963:announceProvider", (event) => {
+        if (event?.detail?.provider) {
+          registerProvider(event.detail.info, event.detail.provider);
+        }
+      });
+
+      function refreshFallbackProviders() {
+        if (discoveredProviders.size > 0) return;
+        const eth = window.ethereum;
+        if (!eth) return;
+        if (Array.isArray(eth.providers) && eth.providers.length) {
+          eth.providers.forEach((p, idx) => {
+            const name = p.isMetaMask ? "MetaMask" : p.isPhantom ? "Phantom" : p.isRabby ? "Rabby Wallet" : p.isCoinbaseWallet ? "Coinbase Wallet" : `Wallet ${idx + 1}`;
+            registerProvider({ rdns: `legacy.${name.toLowerCase().replace(/\s+/g, "-")}`, name }, p);
+          });
+        } else {
+          const name = eth.isMetaMask ? "MetaMask" : eth.isPhantom ? "Phantom" : eth.isRabby ? "Rabby Wallet" : eth.isCoinbaseWallet ? "Coinbase Wallet" : "Browser Wallet";
+          registerProvider({ rdns: `legacy.${name.toLowerCase().replace(/\s+/g, "-")}`, name }, eth);
+        }
+      }
+
+      function requestProvidersDiscovery() {
+        window.dispatchEvent(new Event("eip6963:requestProvider"));
+        refreshFallbackProviders();
+      }
+
+      requestProvidersDiscovery();
 
       const state = {
         view: "launch",
         boardMode: "cards",
         info: null,
+        provider: null,
+        providerName: null,
         address: null,
         chainId: null,
         launches: [],
@@ -1859,12 +2174,34 @@
         el("connectBtn").style.display = connected ? "none" : "inline-flex";
         el("walletPillBtn").style.display = connected ? "inline-flex" : "none";
 
+        const chainLower = state.chainId?.toLowerCase() || "";
+        const isGiwa = chainLower === GIWA_HEX;
+        const isSepolia = chainLower === SEPOLIA_HEX;
+
         if (connected) {
           el("addrPill").textContent = `${shortAddr(state.address)} ▾`;
           el("fullAddrText").textContent = state.address;
-          el("popExplorerLink").href = `https://sepolia-explorer.giwa.io/address/${state.address}`;
+          el("popWalletName").textContent = state.providerName || "Wallet";
+          el("popExplorerLink").href = isSepolia
+            ? `https://sepolia.etherscan.io/address/${state.address}`
+            : `https://sepolia-explorer.giwa.io/address/${state.address}`;
+          const popBadge = el("popNetBadge");
+          if (isGiwa) {
+            popBadge.className = "tag ok";
+            popBadge.textContent = "GIWA Sepolia";
+            el("popSwitchNetBtn").textContent = "Switch to Sepolia";
+          } else if (isSepolia) {
+            popBadge.className = "tag blue";
+            popBadge.textContent = "Sepolia L1";
+            el("popSwitchNetBtn").textContent = "Switch to GIWA";
+          } else {
+            popBadge.className = "tag warn";
+            popBadge.textContent = "Other Network";
+            el("popSwitchNetBtn").textContent = "Switch to GIWA";
+          }
         } else {
           el("walletPopover").classList.remove("open");
+          el("walletPillBtn").setAttribute("aria-expanded", "false");
         }
 
         const netDot = el("netDot");
@@ -1872,10 +2209,10 @@
         if (!connected) {
           netDot.className = "net-dot";
           netLabel.textContent = "GIWA Sepolia";
-        } else if (state.chainId?.toLowerCase() === GIWA_HEX) {
+        } else if (isGiwa) {
           netDot.className = "net-dot ok";
           netLabel.textContent = "GIWA Sepolia";
-        } else if (state.chainId?.toLowerCase() === SEPOLIA_HEX) {
+        } else if (isSepolia) {
           netDot.className = "net-dot blue";
           netLabel.textContent = "Sepolia L1";
         } else {
@@ -1883,33 +2220,231 @@
           netLabel.textContent = "Switch Network";
         }
 
-        const needGiwa = connected && state.chainId?.toLowerCase() !== GIWA_HEX;
-        const needSepolia = connected && state.chainId?.toLowerCase() !== SEPOLIA_HEX;
+        const needGiwa = connected && !isGiwa;
+        const needSepolia = connected && !isSepolia;
         el("switchGiwaTradeBtn").style.display = needGiwa ? "inline-flex" : "none";
         el("switchGiwaCreateBtn").style.display = needGiwa ? "inline-flex" : "none";
         el("switchSepoliaBtn").style.display = needSepolia ? "inline-flex" : "none";
       }
 
-      async function connectWallet() {
-        if (!window.ethereum) throw new Error("Install MetaMask or an EIP-1193 wallet first.");
-        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-        state.address = accounts[0] || null;
-        state.chainId = await window.ethereum.request({ method: "eth_chainId" });
+      const onProviderAccountsChanged = (accs) => {
+        if (!accs?.length) {
+          disconnectWallet(false);
+          return;
+        }
+        if (localStorage.getItem(WALLET_DISCONNECTED_KEY) === "1") return;
+        applyConnectedState(accs, state.chainId);
+      };
+
+      const onProviderChainChanged = (cid) => {
+        if (!state.address) return;
+        state.chainId = cid;
+        updateWalletUI();
+        refreshHeaderBal();
+      };
+
+      function bindProviderEvents(provider) {
+        if (!provider || boundProvider === provider) return;
+        if (boundProvider?.removeListener) {
+          boundProvider.removeListener("accountsChanged", onProviderAccountsChanged);
+          boundProvider.removeListener("chainChanged", onProviderChainChanged);
+        }
+        boundProvider = provider;
+        provider.on?.("accountsChanged", onProviderAccountsChanged);
+        provider.on?.("chainChanged", onProviderChainChanged);
+      }
+
+      function getSavedProviderEntry() {
+        requestProvidersDiscovery();
+        const savedRdns = localStorage.getItem(WALLET_RDNS_KEY);
+        if (savedRdns && discoveredProviders.has(savedRdns)) {
+          return discoveredProviders.get(savedRdns);
+        }
+        return null;
+      }
+
+      function getActiveProvider() {
+        if (state.provider) return state.provider;
+        const saved = getSavedProviderEntry();
+        if (saved) {
+          state.provider = saved.provider;
+          state.providerName = saved.info.name;
+          bindProviderEvents(saved.provider);
+          return saved.provider;
+        }
+        requestProvidersDiscovery();
+        const first = discoveredProviders.values().next().value;
+        if (first) {
+          state.provider = first.provider;
+          state.providerName = first.info.name;
+          bindProviderEvents(first.provider);
+          return first.provider;
+        }
+        return window.ethereum || null;
+      }
+
+      function chooseWalletProvider() {
+        requestProvidersDiscovery();
+        const entries = [...discoveredProviders.values()];
+        if (entries.length === 0) {
+          return Promise.reject(new Error("Install MetaMask or an EIP-1193 wallet first."));
+        }
+        if (entries.length === 1) {
+          return Promise.resolve(entries[0]);
+        }
+        return new Promise((resolve, reject) => {
+          const modal = el("walletModal");
+          const list = el("walletChoicesList");
+          list.textContent = "";
+
+          const cleanup = () => {
+            modal.classList.remove("open");
+            el("closeWalletModalBtn").onclick = null;
+            modal.onclick = null;
+          };
+
+          for (const entry of entries) {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "wallet-choice";
+            const left = document.createElement("span");
+            left.className = "wallet-choice-left";
+            if (entry.info.icon) {
+              const img = document.createElement("img");
+              img.src = entry.info.icon;
+              img.alt = entry.info.name;
+              left.appendChild(img);
+            }
+            const nm = document.createElement("span");
+            nm.textContent = entry.info.name;
+            left.appendChild(nm);
+            const tag = document.createElement("span");
+            tag.className = "muted mono";
+            tag.style.fontSize = "0.72rem";
+            tag.textContent = "Connect →";
+            btn.append(left, tag);
+            btn.addEventListener("click", () => {
+              cleanup();
+              resolve(entry);
+            });
+            list.appendChild(btn);
+          }
+
+          el("closeWalletModalBtn").onclick = () => {
+            cleanup();
+            reject(new Error("Wallet connection cancelled."));
+          };
+          modal.onclick = (e) => {
+            if (e.target === modal) {
+              cleanup();
+              reject(new Error("Wallet connection cancelled."));
+            }
+          };
+          modal.classList.add("open");
+        });
+      }
+
+      function applyConnectedState(accounts, chainId) {
+        state.address = accounts?.[0] || null;
+        state.chainId = chainId || state.chainId || null;
         updateWalletUI();
         refreshHeaderBal();
         refreshTradeState();
         refreshBridgeBalances();
+        renderActiveCurvesGrid();
+        renderBoardsList();
+      }
+
+      async function connectWallet(forcePicker = false) {
+        let entry = !forcePicker ? getSavedProviderEntry() : null;
+        if (!entry) {
+          entry = await chooseWalletProvider();
+        }
+        const provider = entry.provider;
+        state.provider = provider;
+        state.providerName = entry.info.name;
+        bindProviderEvents(provider);
+        localStorage.removeItem(WALLET_DISCONNECTED_KEY);
+        localStorage.setItem(WALLET_CONNECTED_KEY, "1");
+        localStorage.setItem(WALLET_RDNS_KEY, entry.info.rdns);
+
+        const accounts = await provider.request({ method: "eth_requestAccounts" });
+        const chainId = await provider.request({ method: "eth_chainId" });
+        applyConnectedState(accounts, chainId);
+      }
+
+      async function switchWalletAccount() {
+        const provider = getActiveProvider();
+        if (!provider) throw new Error("Install MetaMask or an EIP-1193 wallet first.");
+        localStorage.removeItem(WALLET_DISCONNECTED_KEY);
+        localStorage.setItem(WALLET_CONNECTED_KEY, "1");
+        try {
+          await provider.request({
+            method: "wallet_requestPermissions",
+            params: [{ eth_accounts: {} }],
+          });
+        } catch (err) {
+          if (err?.code === 4001) throw err;
+        }
+        const accounts = await provider.request({ method: "eth_requestAccounts" });
+        const chainId = await provider.request({ method: "eth_chainId" });
+        applyConnectedState(accounts, chainId);
+      }
+
+      async function disconnectWallet(revokeInWallet = true) {
+        const activeProv = state.provider || getActiveProvider();
+        localStorage.setItem(WALLET_DISCONNECTED_KEY, "1");
+        localStorage.removeItem(WALLET_CONNECTED_KEY);
+        state.address = null;
+        state.chainId = null;
+        state.tradeBalances = null;
+        state.l1EthRaw = null;
+        el("walletPopover").classList.remove("open");
+        el("walletPillBtn").setAttribute("aria-expanded", "false");
+        updateWalletUI();
+        refreshHeaderBal();
+        refreshTradeState();
+        refreshBridgeBalances();
+        renderActiveCurvesGrid();
+        renderBoardsList();
+        if (revokeInWallet && activeProv) {
+          try {
+            await activeProv.request({
+              method: "wallet_revokePermissions",
+              params: [{ eth_accounts: {} }],
+            });
+          } catch {}
+        }
+      }
+
+      async function ensureAuthorizedProvider() {
+        if (!state.provider || !state.address || localStorage.getItem(WALLET_DISCONNECTED_KEY) === "1") {
+          await connectWallet(false);
+        }
+        const provider = getActiveProvider();
+        if (!provider) throw new Error("Install MetaMask or an EIP-1193 wallet first.");
+        const accounts = await provider.request({ method: "eth_requestAccounts" });
+        if (!accounts?.length) {
+          throw new Error("No wallet account authorized.");
+        }
+        if (!state.address || state.address.toLowerCase() !== accounts[0].toLowerCase()) {
+          state.address = accounts[0];
+          updateWalletUI();
+        }
+        return { provider, account: accounts[0] };
       }
 
       async function switchChain(targetHex) {
-        const current = await window.ethereum.request({ method: "eth_chainId" });
+        const provider = getActiveProvider();
+        if (!provider) throw new Error("Install MetaMask or an EIP-1193 wallet first.");
+        const current = await provider.request({ method: "eth_chainId" });
         state.chainId = current;
         if (current?.toLowerCase() === targetHex) {
           updateWalletUI();
           return;
         }
         try {
-          await window.ethereum.request({
+          await provider.request({
             method: "wallet_switchEthereumChain",
             params: [{ chainId: targetHex }],
           });
@@ -1925,11 +2460,12 @@
       }
 
       async function addGiwaNetwork() {
-        if (!window.ethereum) {
+        const provider = getActiveProvider();
+        if (!provider) {
           alert("Install MetaMask first to add GIWA Sepolia.");
           return;
         }
-        await window.ethereum.request({
+        await provider.request({
           method: "wallet_addEthereumChain",
           params: [
             {
@@ -1941,6 +2477,41 @@
             },
           ],
         });
+      }
+
+      async function sendAuthorizedTx(targetChainHex, txParams) {
+        let { provider, account } = await ensureAuthorizedProvider();
+        await switchChain(targetChainHex);
+        const buildParams = (from) => [
+          {
+            from,
+            to: txParams.to,
+            data: txParams.data,
+            value: txParams.value,
+            ...(txParams.gas ? { gas: txParams.gas } : {}),
+          },
+        ];
+        try {
+          return await provider.request({
+            method: "eth_sendTransaction",
+            params: buildParams(account),
+          });
+        } catch (err) {
+          // Error 4100 = account/method not authorized; re-request permission once and retry.
+          if (err?.code === 4100) {
+            const reauth = await provider.request({ method: "eth_requestAccounts" });
+            if (reauth?.length) {
+              account = reauth[0];
+              state.address = account;
+              updateWalletUI();
+              return await provider.request({
+                method: "eth_sendTransaction",
+                params: buildParams(account),
+              });
+            }
+          }
+          throw err;
+        }
       }
 
       async function waitForL2Receipt(hash) {
@@ -1958,14 +2529,43 @@
           el("headerBalPill").textContent = "-- ETH";
           el("popGiwaEth").textContent = "--";
           el("popGiwaWeth").textContent = "--";
+          el("popSepoliaEth").textContent = "--";
           return;
         }
-        try {
-          const bal = await apiJson(`/api/launchpad/balances?account=${encodeURIComponent(state.address)}`);
-          el("headerBalPill").textContent = `${formatNum(bal.eth, 4)} ETH`;
-          el("popGiwaEth").textContent = `${formatNum(bal.eth, 4)} ETH`;
-          el("popGiwaWeth").textContent = `${formatNum(bal.weth, 4)} WETH`;
-        } catch {}
+        const isSepolia = state.chainId?.toLowerCase() === SEPOLIA_HEX;
+
+        // Instant client-side balance fallback on active chain so header never stays stuck on "-- ETH"
+        const activeProv = getActiveProvider();
+        if (activeProv) {
+          activeProv
+            .request({ method: "eth_getBalance", params: [state.address, "latest"] })
+            .then((hexWei) => {
+              if (!state.address || !hexWei) return;
+              const ethVal = Number(BigInt(hexWei)) / 1e18;
+              el("headerBalPill").textContent = `${formatNum(ethVal, 4)} ETH`;
+            })
+            .catch(() => {});
+        }
+
+        const [l2Res, bridgeRes] = await Promise.allSettled([
+          apiJson(`/api/launchpad/balances?account=${encodeURIComponent(state.address)}`),
+          apiJson(`/api/balances?address=${encodeURIComponent(state.address)}`),
+        ]);
+
+        if (l2Res.status === "fulfilled") {
+          el("popGiwaEth").textContent = `${formatNum(l2Res.value.eth, 4)} ETH`;
+          el("popGiwaWeth").textContent = `${formatNum(l2Res.value.weth, 4)} WETH`;
+          if (!isSepolia) {
+            el("headerBalPill").textContent = `${formatNum(l2Res.value.eth, 4)} ETH`;
+          }
+        }
+        if (bridgeRes.status === "fulfilled") {
+          state.l1EthRaw = bridgeRes.value.l1Eth;
+          el("popSepoliaEth").textContent = `${formatNum(bridgeRes.value.l1Eth, 4)} ETH`;
+          if (isSepolia) {
+            el("headerBalPill").textContent = `${formatNum(bridgeRes.value.l1Eth, 4)} ETH`;
+          }
+        }
       }
 
       // --- FILTERING & RENDERING ---
@@ -2260,8 +2860,7 @@
         }
 
         const statsRow = document.createElement("div");
-        statsRow.style.display = "grid";
-        statsRow.style.gridTemplateColumns = "repeat(3, 1fr)";
+        statsRow.className = "stats-3-grid";
         statsRow.style.gap = "10px";
         for (const [k, v] of [
           ["Base Reserve", `${formatNum(current.baseReserveFormatted, 2)} ${current.symbol}`],
@@ -2526,18 +3125,11 @@
       }
 
       async function sendGiwaTx(tx) {
-        await switchChain(GIWA_HEX);
-        return window.ethereum.request({
-          method: "eth_sendTransaction",
-          params: [
-            {
-              from: state.address,
-              to: tx.to,
-              data: tx.data,
-              value: tx.valueHex,
-              ...(tx.gasHex ? { gas: tx.gasHex } : {}),
-            },
-          ],
+        return sendAuthorizedTx(GIWA_HEX, {
+          to: tx.to,
+          data: tx.data,
+          value: tx.valueHex,
+          ...(tx.gasHex ? { gas: tx.gasHex } : {}),
         });
       }
 
@@ -2545,13 +3137,13 @@
         if (state.busy) return;
         state.busy = true;
         try {
-          if (!state.address) await connectWallet();
+          await ensureAuthorizedProvider();
           const prep = await apiJson("/api/launchpad/wrap-prepare", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ action, amountEth: amount }),
           });
-          setTradeBanner(`Confirm ${action} in MetaMask...`, "warn");
+          setTradeBanner(`Confirm ${action} in your wallet...`, "warn");
           const hash = await sendGiwaTx(prep.transaction);
           setTradeBanner(`Waiting for ${action} confirmation...`, "warn", hash);
           await waitForL2Receipt(hash);
@@ -2572,7 +3164,7 @@
         state.busy = true;
         el("tradeSubmitBtn").disabled = true;
         try {
-          if (!state.address) await connectWallet();
+          await ensureAuthorizedProvider();
           await switchChain(GIWA_HEX);
           const amount = el("tradeAmtInput").value.trim();
           const slippageBps = Number(el("slippageSelect").value);
@@ -2634,7 +3226,7 @@
         if (!launch) return;
         state.busy = true;
         try {
-          if (!state.address) await connectWallet();
+          await ensureAuthorizedProvider();
           const prep = await apiJson("/api/launchpad/migrate-prepare", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -2671,7 +3263,7 @@
         };
 
         try {
-          if (!state.address) await connectWallet();
+          await ensureAuthorizedProvider();
           await switchChain(GIWA_HEX);
           setC("Preparing token & bonding curve launch...", "warn");
 
@@ -2834,14 +3426,17 @@
 
       async function refreshBridgeBalances() {
         if (!state.address) {
+          state.l1EthRaw = null;
           el("l1Bal").textContent = "Bal: -- ETH";
           el("l2Bal").textContent = "Bal: -- ETH";
           return;
         }
-        const bal = await apiJson(`/api/balances?address=${encodeURIComponent(state.address)}`);
-        state.l1EthRaw = bal.l1Eth;
-        el("l1Bal").textContent = `Bal: ${formatNum(bal.l1Eth, 5)} ETH`;
-        el("l2Bal").textContent = `Bal: ${formatNum(bal.l2Eth, 5)} ETH`;
+        try {
+          const bal = await apiJson(`/api/balances?address=${encodeURIComponent(state.address)}`);
+          state.l1EthRaw = bal.l1Eth;
+          el("l1Bal").textContent = `Bal: ${formatNum(bal.l1Eth, 5)} ETH`;
+          el("l2Bal").textContent = `Bal: ${formatNum(bal.l2Eth, 5)} ETH`;
+        } catch {}
       }
 
       async function handleBridgeSubmit(e) {
@@ -2853,7 +3448,7 @@
         el("bridgeLinks").textContent = "";
 
         try {
-          if (!state.address) await connectWallet();
+          await ensureAuthorizedProvider();
           window.__morrales3d?.setBridgeActive(true, "Relaying Sepolia → GIWA...");
           setBridgeSteps(1, "active");
           await switchChain(SEPOLIA_HEX);
@@ -2868,10 +3463,12 @@
           });
           addBridgeLog(`Safe L1 gas limit: ${prep.l1GasLimit} (estimated ${prep.estimatedL1Gas}).`);
 
-          setBridgeBanner("Confirm bridge transaction in MetaMask...", "warn");
-          const l1Hash = await window.ethereum.request({
-            method: "eth_sendTransaction",
-            params: [{ from: state.address, to: prep.to, data: prep.data, value: prep.valueHex, gas: prep.gasHex }],
+          setBridgeBanner("Confirm bridge transaction in your wallet...", "warn");
+          const l1Hash = await sendAuthorizedTx(SEPOLIA_HEX, {
+            to: prep.to,
+            data: prep.data,
+            value: prep.valueHex,
+            gas: prep.gasHex,
           });
 
           saveHistory({ amountEth, l1Hash, status: "pending" });
@@ -2928,7 +3525,28 @@
       });
       el("popBridgeBtn").addEventListener("click", () => {
         el("walletPopover").classList.remove("open");
+        el("walletPillBtn").setAttribute("aria-expanded", "false");
         switchView("bridge");
+      });
+      el("popWrapBtn").addEventListener("click", () => {
+        el("walletPopover").classList.remove("open");
+        el("walletPillBtn").setAttribute("aria-expanded", "false");
+        switchView("boards");
+      });
+      el("popSwitchNetBtn").addEventListener("click", () => {
+        if (!state.address) return;
+        const target = state.chainId?.toLowerCase() === GIWA_HEX ? SEPOLIA_HEX : GIWA_HEX;
+        switchChain(target)
+          .then(() => refreshHeaderBal())
+          .catch((e) => alert(e.message));
+      });
+      el("popSwitchAcctBtn").addEventListener("click", () => {
+        switchWalletAccount().catch((e) => {
+          if (e?.code !== 4001) alert(e.message);
+        });
+      });
+      el("disconnectBtn").addEventListener("click", () => {
+        disconnectWallet();
       });
       el("netPillBtn").addEventListener("click", async () => {
         if (!state.address) {
@@ -2936,7 +3554,9 @@
           return;
         }
         const target = state.chainId?.toLowerCase() === GIWA_HEX ? SEPOLIA_HEX : GIWA_HEX;
-        switchChain(target).catch((e) => alert(e.message));
+        switchChain(target)
+          .then(() => refreshHeaderBal())
+          .catch((e) => alert(e.message));
       });
       el("walletPillBtn").addEventListener("click", (e) => {
         e.stopPropagation();
@@ -3046,7 +3666,13 @@
       el("tradeForm").addEventListener("submit", handleTradeSubmit);
       el("migrateBtn").addEventListener("click", handleMigrate);
 
-      el("connectBtn").addEventListener("click", () => connectWallet().catch((e) => alert(e.message)));
+      el("connectBtn").addEventListener("click", () => {
+        connectWallet(true).catch((e) => {
+          if (e?.code !== 4001 && e?.message !== "Wallet connection cancelled.") {
+            alert(e.message);
+          }
+        });
+      });
       el("addGiwaTopBtn").addEventListener("click", () => addGiwaNetwork().catch((e) => alert(e.message)));
       el("addonGiwaBtn").addEventListener("click", () => addGiwaNetwork().catch((e) => alert(e.message)));
       el("switchGiwaTradeBtn").addEventListener("click", () => switchChain(GIWA_HEX).catch((e) => alert(e.message)));
@@ -3121,26 +3747,31 @@
 
       async function boot() {
         renderHistory();
-        if (window.ethereum) {
-          window.ethereum.on?.("accountsChanged", (accs) => {
-            state.address = accs[0] || null;
-            updateWalletUI();
-            refreshHeaderBal();
-            refreshTradeState();
-            refreshBridgeBalances();
-          });
-          window.ethereum.on?.("chainChanged", (cid) => {
-            state.chainId = cid;
-            updateWalletUI();
-          });
-          try {
-            const [accs, cid] = await Promise.all([
-              window.ethereum.request({ method: "eth_accounts" }),
-              window.ethereum.request({ method: "eth_chainId" }),
-            ]);
-            if (accs?.length) state.address = accs[0];
-            state.chainId = cid || null;
-          } catch {}
+        requestProvidersDiscovery();
+        // Give EIP-6963 extensions a brief tick to announce themselves before restoring a session.
+        await new Promise((r) => setTimeout(r, 60));
+        requestProvidersDiscovery();
+
+        const shouldAutoRestore =
+          localStorage.getItem(WALLET_CONNECTED_KEY) === "1" &&
+          localStorage.getItem(WALLET_DISCONNECTED_KEY) !== "1";
+
+        if (shouldAutoRestore) {
+          const savedEntry = getSavedProviderEntry();
+          const provider = savedEntry?.provider || getActiveProvider();
+          if (provider) {
+            state.provider = provider;
+            state.providerName = savedEntry?.info?.name || state.providerName || "Wallet";
+            bindProviderEvents(provider);
+            try {
+              const [accs, cid] = await Promise.all([
+                provider.request({ method: "eth_accounts" }),
+                provider.request({ method: "eth_chainId" }),
+              ]);
+              if (accs?.length) state.address = accs[0];
+              state.chainId = cid || null;
+            } catch {}
+          }
         }
         updateWalletUI();
         refreshHeaderBal();
