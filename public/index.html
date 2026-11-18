@@ -1,0 +1,3638 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Morrales — Ammora Launchpad &amp; GIWA Bridge</title>
+    <link rel="icon" href="/morrales-logo.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #f7f9fc;
+        --surface: #ffffff;
+        --surface-2: #f1f5f9;
+        --surface-3: #f8fafc;
+        --keyline: #e2e8f0;
+        --keyline-strong: #cbd5e1;
+        --ink: #0f172a;
+        --ink-2: #475569;
+        --ink-3: #64748b;
+        --blue: #2563eb;
+        --blue-hover: #1d4ed8;
+        --blue-soft: #eff6ff;
+        --blue-border: #bfdbfe;
+        --ok: #059669;
+        --ok-bg: #ecfdf5;
+        --ok-border: #a7f3d0;
+        --warn: #d97706;
+        --warn-bg: #fffbeb;
+        --warn-border: #fde68a;
+        --err: #e11d48;
+        --err-bg: #fff1f2;
+        --err-border: #fecdd3;
+        --font-sans: "Plus Jakarta Sans", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        --radius: 14px;
+        --shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.04);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: var(--font-sans);
+        color: var(--ink);
+        background:
+          radial-gradient(900px 420px at 50% -120px, rgba(37, 99, 235, 0.07), transparent 70%),
+          var(--bg);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .mono {
+        font-family: var(--font-mono);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .shell {
+        position: relative;
+        z-index: 1;
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 16px 20px 56px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      #threeBgCanvas {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 0;
+        pointer-events: none;
+        opacity: 0.72;
+      }
+
+      .stage-3d {
+        position: relative;
+        width: 100%;
+        height: 220px;
+        border-radius: 10px;
+        overflow: hidden;
+        background: linear-gradient(180deg, #ffffff 0%, #f1f6ff 100%);
+        border: 1px solid var(--keyline);
+        cursor: grab;
+      }
+
+      .stage-3d:active {
+        cursor: grabbing;
+      }
+
+      .stage-3d canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      .stage-hud {
+        position: absolute;
+        inset: 10px 12px;
+        pointer-events: none;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .stage-hud-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .hero-3d-wrap {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      #hero3dCanvas {
+        width: 108px;
+        height: 108px;
+        border-radius: 14px;
+        background: radial-gradient(circle at 30% 25%, #ffffff 0%, #eff6ff 100%);
+        border: 1px solid var(--blue-border);
+        flex-shrink: 0;
+        cursor: pointer;
+        transition: border-color 0.16s ease, box-shadow 0.16s ease;
+      }
+
+      #hero3dCanvas:hover {
+        border-color: var(--blue);
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.16);
+      }
+
+      .bridge-3d-wrap {
+        width: 100%;
+        max-width: 680px;
+        height: 112px;
+        margin: 12px auto 0;
+        border-radius: 12px;
+        border: 1px solid var(--keyline);
+        background: linear-gradient(180deg, #ffffff 0%, #eff6ff 100%);
+        overflow: hidden;
+        position: relative;
+        box-shadow: var(--shadow);
+      }
+
+      #bridge3dCanvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* TOPBAR */
+      .topbar {
+        position: sticky;
+        top: 12px;
+        z-index: 40;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 16px;
+        padding: 10px 16px;
+        background: rgba(255, 255, 255, 0.88);
+        backdrop-filter: blur(14px);
+        border: 1px solid var(--keyline);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+      }
+
+      .logo {
+        width: 36px;
+        height: 36px;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+      }
+
+      .brand-name {
+        font-weight: 700;
+        font-size: 1.02rem;
+        letter-spacing: -0.025em;
+        line-height: 1.1;
+      }
+
+      .brand-tag {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        color: var(--ink-3);
+      }
+
+      .nav-tabs {
+        justify-self: center;
+        display: inline-flex;
+        gap: 4px;
+        background: var(--surface-2);
+        padding: 4px;
+        border-radius: 10px;
+        border: 1px solid var(--keyline);
+        flex-wrap: nowrap;
+      }
+
+      .nav-tab {
+        appearance: none;
+        border: 0;
+        background: transparent;
+        color: var(--ink-2);
+        font-family: var(--font-sans);
+        font-weight: 600;
+        font-size: 0.83rem;
+        padding: 7px 14px;
+        border-radius: 7px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.15s ease;
+      }
+
+      .nav-tab:hover:not(.active) {
+        color: var(--ink);
+        background: rgba(255, 255, 255, 0.72);
+      }
+
+      .nav-tab.active {
+        background: var(--blue);
+        color: #fff;
+        box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+      }
+
+      .topbar-right {
+        justify-self: end;
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: nowrap;
+      }
+
+      .net-pill-btn {
+        appearance: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--keyline);
+        background: var(--surface-3);
+        color: var(--ink);
+        font-family: var(--font-sans);
+        font-size: 0.79rem;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.14s ease;
+      }
+
+      .net-pill-btn:hover {
+        border-color: var(--keyline-strong);
+        background: var(--surface-2);
+      }
+
+      .net-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: var(--ink-3);
+        flex-shrink: 0;
+      }
+
+      .net-dot.ok {
+        background: var(--ok);
+        box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+      }
+
+      .net-dot.blue {
+        background: var(--blue);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+      }
+
+      .net-dot.warn {
+        background: var(--warn);
+        box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.15);
+      }
+
+      .wallet-pill-btn {
+        appearance: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 5px 4px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--keyline-strong);
+        background: var(--surface);
+        color: var(--ink);
+        font-family: var(--font-sans);
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+        transition: all 0.14s ease;
+      }
+
+      .wallet-pill-btn:hover {
+        border-color: var(--blue-border);
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);
+      }
+
+      .wallet-bal {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--ink);
+      }
+
+      .wallet-addr-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px 10px;
+        border-radius: 999px;
+        background: var(--blue-soft);
+        border: 1px solid var(--blue-border);
+        color: var(--blue);
+        font-family: var(--font-mono);
+        font-size: 0.76rem;
+        font-weight: 600;
+      }
+
+      .wallet-popover {
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        width: 300px;
+        background: var(--surface);
+        border: 1px solid var(--keyline);
+        border-radius: 14px;
+        padding: 14px;
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+        display: none;
+        flex-direction: column;
+        gap: 10px;
+        z-index: 60;
+      }
+
+      .wallet-popover.open {
+        display: flex;
+      }
+
+      @media (max-width: 960px) {
+        .topbar {
+          grid-template-columns: 1fr auto;
+          row-gap: 10px;
+        }
+        .nav-tabs {
+          grid-column: 1 / -1;
+          justify-self: stretch;
+          justify-content: center;
+          overflow-x: auto;
+        }
+      }
+
+      .ticker-strip {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 8px 14px;
+        background: var(--surface);
+        border: 1px solid var(--keyline);
+        border-radius: 10px;
+        font-size: 0.78rem;
+        color: var(--ink-2);
+      }
+
+      .ticker-items {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        display: inline-block;
+        background: var(--ok);
+      }
+
+      /* CARDS & COMMON */
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--keyline);
+        border-radius: var(--radius);
+        padding: 18px;
+        box-shadow: var(--shadow);
+      }
+
+      .card-subtle {
+        background: var(--surface-3);
+        border: 1px solid var(--keyline);
+        border-radius: 11px;
+        padding: 12px 14px;
+      }
+
+      .view {
+        display: none;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .view.active {
+        display: flex;
+      }
+
+      h1, h2, h3 {
+        margin: 0;
+        letter-spacing: -0.025em;
+      }
+
+      .muted {
+        font-size: 0.8rem;
+        color: var(--ink-3);
+        line-height: 1.5;
+      }
+
+      .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      /* BUTTONS */
+      .btn {
+        appearance: none;
+        border: 1px solid var(--keyline-strong);
+        background: var(--surface);
+        color: var(--ink);
+        font-family: var(--font-sans);
+        font-size: 0.84rem;
+        font-weight: 600;
+        padding: 8px 14px;
+        border-radius: 9px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        text-decoration: none;
+        transition: all 0.14s ease;
+      }
+
+      .btn:hover:not(:disabled) {
+        background: var(--surface-2);
+        border-color: #94a3b8;
+      }
+
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .btn-blue {
+        border-color: var(--blue);
+        background: var(--blue);
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.22);
+      }
+
+      .btn-blue:hover:not(:disabled) {
+        background: var(--blue-hover);
+        border-color: var(--blue-hover);
+      }
+
+      .btn-blue.full {
+        width: 100%;
+        padding: 12px 16px;
+        font-size: 0.92rem;
+      }
+
+      .btn-sm {
+        padding: 6px 10px;
+        font-size: 0.77rem;
+        border-radius: 7px;
+      }
+
+      /* TAGS / PILLS */
+      .tag {
+        font-size: 0.72rem;
+        font-weight: 600;
+        padding: 3px 9px;
+        border-radius: 999px;
+        border: 1px solid var(--keyline);
+        background: var(--surface-2);
+        color: var(--ink-2);
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .tag.blue {
+        background: var(--blue-soft);
+        border-color: var(--blue-border);
+        color: var(--blue);
+      }
+
+      .tag.ok {
+        background: var(--ok-bg);
+        border-color: var(--ok-border);
+        color: var(--ok);
+      }
+
+      .tag.warn {
+        background: var(--warn-bg);
+        border-color: var(--warn-border);
+        color: var(--warn);
+      }
+
+      .pill {
+        font-family: var(--font-mono);
+        font-size: 0.76rem;
+        padding: 6px 11px;
+        border-radius: 999px;
+        border: 1px solid var(--keyline-strong);
+        background: var(--surface-3);
+        color: var(--ink);
+        cursor: pointer;
+      }
+
+      /* INPUTS */
+      label {
+        display: block;
+        font-size: 0.79rem;
+        font-weight: 600;
+        color: var(--ink-2);
+        margin-bottom: 5px;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        font-family: var(--font-sans);
+        font-size: 0.9rem;
+        color: var(--ink);
+        background: var(--surface);
+        border: 1px solid var(--keyline-strong);
+        border-radius: 9px;
+        padding: 10px 12px;
+        outline: none;
+        transition: border-color 0.14s ease, box-shadow 0.14s ease;
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        border-color: var(--blue);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+      }
+
+      select.compact {
+        width: auto;
+        padding: 7px 10px;
+        font-size: 0.8rem;
+      }
+
+      .field {
+        margin-bottom: 13px;
+      }
+
+      .input-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+
+      .input-wrap input {
+        padding-right: 112px;
+        font-family: var(--font-mono);
+        font-weight: 600;
+      }
+
+      .input-right {
+        position: absolute;
+        right: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      /* HERO & KPI ROW (Screen 3) */
+      .hero {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        flex-wrap: wrap;
+        background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+        border: 1px solid var(--blue-border);
+      }
+
+      .hero h1 {
+        font-size: 1.45rem;
+        font-weight: 700;
+        margin-top: 6px;
+      }
+
+      .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+      }
+
+      .kpi-card {
+        background: var(--surface);
+        border: 1px solid var(--keyline);
+        border-radius: 12px;
+        padding: 14px 16px;
+        box-shadow: var(--shadow);
+      }
+
+      .kpi-label {
+        font-size: 0.74rem;
+        font-weight: 600;
+        color: var(--ink-3);
+        margin-bottom: 6px;
+      }
+
+      .kpi-val {
+        font-family: var(--font-mono);
+        font-size: 1.32rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+
+      .kpi-sub {
+        font-size: 0.75rem;
+        color: var(--ok);
+        margin-top: 4px;
+      }
+
+      /* FILTER BAR */
+      .filter-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+        padding: 10px 14px;
+        background: var(--surface);
+        border: 1px solid var(--keyline);
+        border-radius: 12px;
+      }
+
+      .search-wrap {
+        position: relative;
+        flex: 1 1 220px;
+        max-width: 320px;
+      }
+
+      .search-wrap input {
+        padding-left: 34px;
+        padding-top: 8px;
+        padding-bottom: 8px;
+        font-size: 0.84rem;
+      }
+
+      .search-wrap svg {
+        position: absolute;
+        left: 11px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--ink-3);
+      }
+
+      .chips {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+
+      .chip {
+        appearance: none;
+        border: 1px solid var(--keyline);
+        background: var(--surface-3);
+        color: var(--ink-2);
+        font-family: var(--font-sans);
+        font-size: 0.78rem;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 999px;
+        cursor: pointer;
+      }
+
+      .chip.active {
+        background: var(--blue);
+        border-color: var(--blue);
+        color: #fff;
+      }
+
+      /* LAUNCH / TERMINAL 2-COL (Screen 3) */
+      .launch-workspace {
+        display: grid;
+        grid-template-columns: 420px 1fr;
+        gap: 16px;
+        align-items: start;
+      }
+
+      .curves-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+
+      .curve-card {
+        background: var(--surface);
+        border: 1px solid var(--keyline);
+        border-radius: 12px;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        transition: border-color 0.14s ease, box-shadow 0.14s ease;
+      }
+
+      .curve-card:hover {
+        border-color: var(--blue-border);
+        box-shadow: 0 6px 18px rgba(37, 99, 235, 0.08);
+      }
+
+      .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: var(--blue-soft);
+        border: 1px solid var(--blue-border);
+        color: var(--blue);
+        font-weight: 700;
+        font-size: 0.85rem;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        flex-shrink: 0;
+      }
+
+      .avatar.sm {
+        width: 34px;
+        height: 34px;
+        font-size: 0.78rem;
+      }
+
+      .avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .progress-track {
+        width: 100%;
+        height: 7px;
+        border-radius: 999px;
+        background: var(--surface-2);
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--blue), #0ea5e9);
+        transition: width 0.25s ease;
+      }
+
+      /* TRENDING BOARDS (Screen 2) */
+      .board-top {
+        display: grid;
+        grid-template-columns: 1.45fr 1fr;
+        gap: 16px;
+        align-items: start;
+      }
+
+      .chart-box {
+        background: var(--surface-3);
+        border: 1px solid var(--keyline);
+        border-radius: 12px;
+        padding: 14px;
+      }
+
+      .trending-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+      }
+
+      /* BRIDGE & ADD-ONS (Screen 1) */
+      .bridge-hero {
+        text-align: center;
+        padding: 8px 0 4px;
+      }
+
+      .bridge-hero h1 {
+        font-size: 1.85rem;
+        font-weight: 700;
+        margin: 8px 0 6px;
+      }
+
+      .bridge-hero span {
+        color: var(--blue);
+      }
+
+      .bridge-grid {
+        display: grid;
+        grid-template-columns: 1.35fr 1fr;
+        gap: 16px;
+        align-items: start;
+      }
+
+      .addons-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+      }
+
+      /* TABLE */
+      .table-wrap {
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 680px;
+      }
+
+      th,
+      td {
+        text-align: left;
+        padding: 11px 10px;
+        border-bottom: 1px solid var(--keyline);
+        font-size: 0.84rem;
+        vertical-align: middle;
+      }
+
+      th {
+        font-size: 0.73rem;
+        font-weight: 600;
+        color: var(--ink-3);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      tbody tr:hover {
+        background: var(--surface-3);
+      }
+
+      .status-banner {
+        padding: 10px 12px;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        border: 1px solid var(--keyline);
+        background: var(--surface-2);
+      }
+
+      .status-banner.ok {
+        background: var(--ok-bg);
+        border-color: var(--ok-border);
+        color: var(--ok);
+      }
+
+      .status-banner.warn {
+        background: var(--warn-bg);
+        border-color: var(--warn-border);
+        color: var(--warn);
+      }
+
+      .status-banner.err {
+        background: var(--err-bg);
+        border-color: var(--err-border);
+        color: var(--err);
+      }
+
+      .stepper {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+
+      .step {
+        padding: 8px 10px;
+        border-radius: 9px;
+        border: 1px solid var(--keyline);
+        background: var(--surface-3);
+        font-size: 0.76rem;
+        font-weight: 600;
+        color: var(--ink-3);
+      }
+
+      .step.active {
+        border-color: var(--blue-border);
+        background: var(--blue-soft);
+        color: var(--blue);
+      }
+
+      .step.done {
+        border-color: var(--ok-border);
+        background: var(--ok-bg);
+        color: var(--ok);
+      }
+
+      .step.err {
+        border-color: var(--err-border);
+        background: var(--err-bg);
+        color: var(--err);
+      }
+
+      .logs {
+        margin: 0;
+        padding-left: 18px;
+        font-size: 0.79rem;
+        color: var(--ink-2);
+        max-height: 130px;
+        overflow-y: auto;
+      }
+
+      a {
+        color: var(--blue);
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+
+      .disclaimer-box {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 16px;
+        background: var(--surface);
+        border: 1px solid var(--blue-border);
+        border-left: 3px solid var(--blue);
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        font-size: 0.79rem;
+        line-height: 1.55;
+        color: var(--ink-2);
+      }
+
+      .disclaimer-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: var(--blue-soft);
+        color: var(--blue);
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+
+      .footer {
+        background: var(--surface);
+        border: 1px solid var(--keyline);
+        border-radius: var(--radius);
+        padding: 18px 20px 14px;
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .footer-grid {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr 1fr 1fr;
+        gap: 18px;
+      }
+
+      .footer-col h4 {
+        margin: 0 0 8px;
+        font-size: 0.76rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--ink-3);
+      }
+
+      .footer-links {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        font-size: 0.8rem;
+      }
+
+      .footer-base {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding-top: 12px;
+        border-top: 1px solid var(--keyline);
+        font-size: 0.76rem;
+        color: var(--ink-3);
+      }
+
+      @media (max-width: 900px) {
+        .footer-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      @media (max-width: 1020px) {
+        .launch-workspace,
+        .board-top,
+        .bridge-grid {
+          grid-template-columns: 1fr;
+        }
+        .trending-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      @media (max-width: 640px) {
+        .kpi-grid,
+        .curves-grid,
+        .trending-grid,
+        .addons-grid,
+        .stepper {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="threeBgCanvas" aria-hidden="true"></canvas>
+    <div class="shell">
+      <!-- TOPBAR -->
+      <header class="topbar">
+        <div class="brand">
+          <div class="logo" aria-hidden="true">
+            <svg width="36" height="36" viewBox="0 0 64 64" fill="none">
+              <defs>
+                <linearGradient id="nav-m-bg" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#3B82F6" />
+                  <stop offset="55%" stop-color="#2563EB" />
+                  <stop offset="100%" stop-color="#1D4ED8" />
+                </linearGradient>
+                <linearGradient id="nav-m-arc" x1="16" y1="44" x2="50" y2="18" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#DBEAFE" />
+                  <stop offset="100%" stop-color="#FFFFFF" />
+                </linearGradient>
+              </defs>
+              <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#nav-m-bg)" />
+              <rect x="3" y="3" width="58" height="58" rx="15" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="1.5" />
+              <path d="M14 45 C26 44, 36 35, 48 19" stroke="#93C5FD" stroke-opacity="0.45" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 3" />
+              <path d="M16 45 V23 L30 35 L48 19 V45" stroke="url(#nav-m-arc)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+              <circle cx="48" cy="19" r="4" fill="#FFFFFF" />
+              <circle cx="48" cy="19" r="7" stroke="#BAE6FD" stroke-opacity="0.55" stroke-width="1.5" />
+            </svg>
+          </div>
+          <div>
+            <div class="brand-name">Morrales</div>
+            <div class="brand-tag">Ammora Launchpad // GIWA V4</div>
+          </div>
+        </div>
+
+        <nav class="nav-tabs" aria-label="Primary sections">
+          <button class="nav-tab active" data-view="launch" type="button">Launch / Terminal</button>
+          <button class="nav-tab" data-view="boards" type="button">Trending Boards</button>
+          <button class="nav-tab" data-view="bridge" type="button">Bridge &amp; Add-ons</button>
+        </nav>
+
+        <div class="topbar-right">
+          <button id="netPillBtn" class="net-pill-btn" type="button" title="Switch network">
+            <span id="netDot" class="net-dot"></span>
+            <span id="netLabel">GIWA Sepolia</span>
+          </button>
+
+          <button id="connectBtn" class="btn btn-blue btn-sm" type="button">Connect Wallet</button>
+
+          <button id="walletPillBtn" class="wallet-pill-btn" type="button" style="display: none" aria-expanded="false">
+            <span id="headerBalPill" class="wallet-bal">-- ETH</span>
+            <span id="addrPill" class="wallet-addr-chip">0x0000...0000 &#9662;</span>
+          </button>
+
+          <div id="walletPopover" class="wallet-popover" role="dialog" aria-label="Connected wallet">
+            <div class="row">
+              <span class="muted" style="font-weight: 600">Connected Wallet</span>
+              <button id="copyAddrBtn" class="btn btn-sm" type="button">Copy Address</button>
+            </div>
+            <div id="fullAddrText" class="mono muted" style="font-size: 0.72rem; word-break: break-all">--</div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
+              <div class="card-subtle">
+                <div class="muted" style="font-size: 0.7rem">GIWA ETH</div>
+                <div id="popGiwaEth" class="mono" style="font-weight: 600; font-size: 0.85rem">--</div>
+              </div>
+              <div class="card-subtle">
+                <div class="muted" style="font-size: 0.7rem">GIWA WETH</div>
+                <div id="popGiwaWeth" class="mono" style="font-weight: 600; font-size: 0.85rem">--</div>
+              </div>
+            </div>
+
+            <div class="row" style="gap: 6px">
+              <button id="popBridgeBtn" class="btn btn-blue btn-sm" type="button" style="flex: 1">Bridge ETH</button>
+              <a id="popExplorerLink" class="btn btn-sm" href="https://sepolia-explorer.giwa.io" target="_blank" rel="noreferrer" style="flex: 1">Explorer &#8599;</a>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- SUB-TICKER -->
+      <div class="ticker-strip">
+        <div class="ticker-items">
+          <span><span class="dot"></span> GIWA Sepolia (<span class="mono">91342</span>)</span>
+          <span id="tickerBlock">Block: <span class="mono">--</span></span>
+          <span id="tickerLaunches">Launches: <span class="mono">--</span></span>
+          <span id="tickerKing">Top Curve: <span class="mono">--</span></span>
+        </div>
+        <div class="ticker-items">
+          <button id="addGiwaTopBtn" class="btn btn-sm" type="button">Add GIWA Network</button>
+          <button id="refreshAllBtn" class="btn btn-sm" type="button">Sync On-Chain</button>
+        </div>
+      </div>
+
+      <!-- ================================================================
+           VIEW 1: LAUNCH / TERMINAL (Screenshot 3 adapted to subtle white)
+           ================================================================ -->
+      <section id="view-launch" class="view active">
+        <div class="card hero">
+          <div>
+            <span class="tag blue">Ammora V4 Bonding Curve • GIWA Sepolia</span>
+            <h1>Launch tokens with verifiable bonding curves.</h1>
+            <p class="muted" style="margin: 6px 0 0">
+              Deterministic token &amp; curve creation via <span class="mono">@ammora-protocol/sdk</span>. Graduates to ARL liquidity on target.
+            </p>
+          </div>
+          <div class="hero-3d-wrap">
+            <canvas id="hero3dCanvas" aria-hidden="true"></canvas>
+            <button id="focusDeployBtn" class="btn btn-blue" type="button">+ Launch a New Token</button>
+          </div>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">Active Launches</div>
+            <div class="kpi-val" id="kpiLaunches">--</div>
+            <div class="kpi-sub">Scanned from LaunchFactory</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Enabled Configs</div>
+            <div class="kpi-val" id="kpiConfigs">--</div>
+            <div class="kpi-sub">On-chain ConfigRegistry</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Top Raised Curve</div>
+            <div class="kpi-val" id="kpiKing">--</div>
+            <div class="kpi-sub" id="kpiKingSub">Highest WETH reserve</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Ready / Graduated</div>
+            <div class="kpi-val" id="kpiGraduated">--</div>
+            <div class="kpi-sub">Ready or migrated to ARL</div>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <div class="search-wrap">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="7"></circle>
+              <path d="m20 20-3.5-3.5"></path>
+            </svg>
+            <input id="globalSearch" type="text" placeholder="Search token, symbol, or CA..." />
+          </div>
+
+          <div class="chips">
+            <button class="chip filter-tab active" data-filter="all" type="button">All Launches</button>
+            <button class="chip filter-tab" data-filter="graduating" type="button">Graduating Soon</button>
+            <button class="chip filter-tab" data-filter="trading" type="button">Trading</button>
+            <button class="chip filter-tab" data-filter="graduated" type="button">Ready / Migrated</button>
+            <button class="chip filter-tab" data-filter="mine" type="button">My Launches</button>
+          </div>
+
+          <div class="row" style="gap: 8px">
+            <select id="lookbackSelect" class="compact">
+              <option value="30000">30k blocks</option>
+              <option value="60000" selected>60k blocks</option>
+              <option value="150000">150k blocks</option>
+            </select>
+            <select id="sortSelect" class="compact">
+              <option value="newest">Sort: Newest</option>
+              <option value="progress">Sort: Progress</option>
+              <option value="raised">Sort: WETH Raised</option>
+              <option value="fee">Sort: Lowest Fee</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="launch-workspace">
+          <!-- LEFT: DEPLOY TOKEN TERMINAL -->
+          <div class="card" id="deployCard">
+            <div class="row" style="margin-bottom: 12px">
+              <div>
+                <h2 style="font-size: 1.05rem">Deploy Token Terminal</h2>
+                <div class="muted">Creates ERC-20 + Ammora V4 Curve</div>
+              </div>
+              <button id="switchGiwaCreateBtn" class="btn btn-sm" type="button" style="display: none">Switch to GIWA</button>
+            </div>
+
+            <form id="createForm">
+              <div style="display: grid; grid-template-columns: 1.3fr 1fr; gap: 10px">
+                <div class="field">
+                  <label for="createName">Token Name</label>
+                  <input id="createName" type="text" placeholder="Morrales Coin" required />
+                </div>
+                <div class="field">
+                  <label for="createSymbol">Ticker Symbol</label>
+                  <input id="createSymbol" type="text" placeholder="MRL" maxlength="16" required />
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="createDesc">Description</label>
+                <textarea id="createDesc" rows="2" placeholder="Describe this launch on GIWA Sepolia..."></textarea>
+              </div>
+
+              <div class="field">
+                <label for="createImg">Logo URL (optional https:// or data:image/)</label>
+                <input id="createImg" type="text" placeholder="https://..." />
+              </div>
+
+              <div class="field">
+                <label for="configSelect">Launch Curve Config</label>
+                <select id="configSelect"></select>
+              </div>
+
+              <div class="card-subtle" style="margin-bottom: 14px">
+                <div class="row" style="margin-bottom: 6px">
+                  <span class="muted" style="font-weight: 600; color: var(--ink-2)">Bonding Curve Trajectory</span>
+                  <span class="mono muted" id="trajTarget">Target: -- WETH</span>
+                </div>
+                <svg id="deployCurveSvg" viewBox="0 0 340 96" width="100%" height="96" aria-label="Bonding curve preview">
+                  <rect x="0" y="0" width="340" height="96" rx="8" fill="#ffffff" stroke="#e2e8f0" />
+                  <path d="M 16 80 Q 190 74 320 18" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" />
+                  <path d="M 16 80 Q 190 74 320 18 L 320 80 Z" fill="rgba(37,99,235,0.08)" />
+                  <circle cx="320" cy="18" r="4" fill="#059669" />
+                  <text x="20" y="22" font-size="10" fill="#64748b" font-family="IBM Plex Mono, monospace">Genesis (0 WETH)</text>
+                  <text x="205" y="90" font-size="10" fill="#059669" font-family="IBM Plex Mono, monospace">ARL Graduation</text>
+                </svg>
+                <div id="configDetails" class="muted" style="margin-top: 8px">Loading enabled configs...</div>
+              </div>
+
+              <button id="createSubmitBtn" class="btn btn-blue full" type="submit">Deploy Token &amp; Bonding Curve</button>
+            </form>
+
+            <div id="createStatusCard" style="display: none; margin-top: 12px">
+              <div id="createBanner" class="status-banner">Ready</div>
+              <div id="createLinks" class="muted" style="margin-top: 8px; display: flex; flex-direction: column; gap: 6px"></div>
+            </div>
+          </div>
+
+          <!-- RIGHT: KING OF THE HILL + ACTIVE BONDING CURVES GRID -->
+          <div style="display: flex; flex-direction: column; gap: 14px">
+            <div id="launchSpotlight" class="card">
+              <div class="muted">Loading top launch...</div>
+            </div>
+
+            <div class="row">
+              <h3 style="font-size: 0.98rem">Active Bonding Curves</h3>
+              <span id="activeCurvesCount" class="muted"></span>
+            </div>
+
+            <div id="activeCurvesGrid" class="curves-grid"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           VIEW 2: TRENDING BOARDS & INSTANT SWAP (Screenshot 2 adapted)
+           ================================================================ -->
+      <section id="view-boards" class="view">
+        <div class="board-top">
+          <!-- LEFT: SELECTED LAUNCH + BONDING CURVE VISUALIZER -->
+          <div class="card" id="boardFeatureCard">
+            <div class="muted">Loading featured launch...</div>
+          </div>
+
+          <!-- RIGHT: INSTANT SWAP TERMINAL -->
+          <div class="card">
+            <div class="row" style="margin-bottom: 12px">
+              <div>
+                <h2 style="font-size: 1.05rem">Instant Swap</h2>
+                <div class="muted">Ammora V4 Bonding Curve • GIWA Sepolia</div>
+              </div>
+              <button id="switchGiwaTradeBtn" class="btn btn-sm" type="button" style="display: none">Switch to GIWA</button>
+            </div>
+
+            <div class="field">
+              <label for="tradeCurveSelect">Active Launch Curve</label>
+              <select id="tradeCurveSelect"></select>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px">
+              <div class="card-subtle">
+                <div class="muted" style="font-size: 0.72rem">GIWA ETH</div>
+                <div class="mono" style="font-weight: 600; font-size: 0.9rem" id="tradeEthBal">--</div>
+              </div>
+              <div class="card-subtle">
+                <div class="muted" style="font-size: 0.72rem">WETH (Quote)</div>
+                <div class="mono" style="font-weight: 600; font-size: 0.9rem" id="tradeWethBal">--</div>
+              </div>
+              <div class="card-subtle">
+                <div class="muted" style="font-size: 0.72rem" id="tradeTokLabel">Token</div>
+                <div class="mono" style="font-weight: 600; font-size: 0.9rem" id="tradeTokBal">--</div>
+              </div>
+            </div>
+
+            <div class="nav-tabs" style="margin-bottom: 12px; display: grid; grid-template-columns: 1fr 1fr">
+              <button id="sideBuyBtn" class="nav-tab active" type="button">Buy Token</button>
+              <button id="sideSellBtn" class="nav-tab" type="button">Sell Token</button>
+            </div>
+
+            <form id="tradeForm">
+              <div class="field">
+                <div class="row" style="margin-bottom: 5px">
+                  <label for="tradeAmtInput" id="tradeAmtLabel" style="margin: 0">You Pay (WETH)</label>
+                  <button id="tradeMaxBtn" class="btn btn-sm" type="button">MAX</button>
+                </div>
+                <input id="tradeAmtInput" class="mono" type="text" inputmode="decimal" value="0.001" required />
+                <div class="chips" style="margin-top: 8px">
+                  <button class="chip trade-preset" data-amt="0.001" type="button">0.001</button>
+                  <button class="chip trade-preset" data-amt="0.005" type="button">0.005</button>
+                  <button class="chip trade-preset" data-amt="0.01" type="button">0.01</button>
+                  <button class="chip trade-preset" data-amt="0.05" type="button">0.05</button>
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="slippageSelect">Slippage Tolerance</label>
+                <select id="slippageSelect">
+                  <option value="100">1%</option>
+                  <option value="200" selected>2%</option>
+                  <option value="500">5%</option>
+                </select>
+              </div>
+
+              <div id="quoteBox" class="card-subtle" style="margin-bottom: 12px">
+                <div class="muted">Enter an amount to quote on-chain.</div>
+              </div>
+
+              <button id="tradeSubmitBtn" class="btn btn-blue full" type="submit">Swap on Bonding Curve</button>
+            </form>
+
+            <div class="card-subtle" style="margin-top: 12px">
+              <div class="row">
+                <span class="muted" style="font-weight: 600; color: var(--ink-2)">Need WETH?</span>
+                <div class="row" style="gap: 6px">
+                  <input id="wrapAmtInput" class="mono" type="text" value="0.01" style="width: 84px; padding: 5px 8px; font-size: 0.8rem" />
+                  <button id="wrapBtn" class="btn btn-sm btn-blue" type="button">Wrap ETH</button>
+                  <button id="unwrapBtn" class="btn btn-sm" type="button">Unwrap</button>
+                </div>
+              </div>
+            </div>
+
+            <button id="migrateBtn" class="btn btn-sm" type="button" style="width: 100%; margin-top: 10px; display: none; border-color: var(--warn); color: var(--warn)">
+              Graduate &amp; Migrate Curve to ARL Pool
+            </button>
+
+            <div id="tradeStatusCard" style="display: none; margin-top: 12px">
+              <div id="tradeBanner" class="status-banner">Ready</div>
+              <div id="tradeLinks" class="muted" style="margin-top: 6px"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TRENDING BOARDS LIST (Cards / Table switch) -->
+        <div class="card">
+          <div class="row" style="margin-bottom: 12px">
+            <div>
+              <h2 style="font-size: 1.05rem">Trending Boards</h2>
+              <div class="muted">Live active &amp; graduated Ammora V4 curves on GIWA Sepolia</div>
+            </div>
+            <div class="chips">
+              <button class="chip board-mode active" data-bmode="cards" type="button">Cards</button>
+              <button class="chip board-mode" data-bmode="table" type="button">Table</button>
+            </div>
+          </div>
+
+          <div id="boardsCardsView" class="trending-grid"></div>
+          <div id="boardsTableView" class="table-wrap" style="display: none">
+            <table>
+              <thead>
+                <tr>
+                  <th>Token</th>
+                  <th>Phase</th>
+                  <th>Age</th>
+                  <th>Progress</th>
+                  <th>WETH Raised</th>
+                  <th>Fee</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="boardsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           VIEW 3: BRIDGE & ADD-ONS (Screenshot 1 adapted to subtle white)
+           ================================================================ -->
+      <section id="view-bridge" class="view">
+        <div class="bridge-hero">
+          <span class="tag blue">Native OP Stack Portal • Verified Gas Floor</span>
+          <h1>Cross-Chain <span>Sepolia &rarr; GIWA</span> Bridge</h1>
+          <p class="muted" style="max-width: 560px; margin: 0 auto">
+            Deposit Ethereum Sepolia ETH directly into GIWA Sepolia (<span class="mono">91342</span>) to fund token launches, WETH wrapping, and curve trading.
+          </p>
+          <div class="bridge-3d-wrap">
+            <canvas id="bridge3dCanvas" aria-hidden="true"></canvas>
+            <div class="stage-hud">
+              <div class="stage-hud-row">
+                <span class="tag blue">Sepolia L1 (11155111)</span>
+                <span class="tag ok">GIWA L2 (91342)</span>
+              </div>
+              <div class="stage-hud-row">
+                <span class="muted mono" style="font-size: 0.7rem">OptimismPortalProxy</span>
+                <span id="bridge3dStatus" class="muted mono" style="font-size: 0.7rem">Relay Idle</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bridge-grid">
+          <!-- LEFT: RELAY ENGINE -->
+          <div class="card">
+            <div class="row" style="margin-bottom: 14px">
+              <div>
+                <h2 style="font-size: 1.04rem">Relay Engine</h2>
+                <div class="muted">OptimismPortalProxy L1 &rarr; L2 ETH deposit</div>
+              </div>
+              <button id="switchSepoliaBtn" class="btn btn-sm" type="button" style="display: none">Switch to Sepolia</button>
+            </div>
+
+            <div class="card-subtle" style="margin-bottom: 10px">
+              <div class="row" style="margin-bottom: 8px">
+                <span class="muted" style="font-weight: 600">From: Ethereum Sepolia (11155111)</span>
+                <span class="mono muted" id="l1Bal">Bal: -- ETH</span>
+              </div>
+              <form id="bridgeForm">
+                <div class="input-wrap" style="margin-bottom: 8px">
+                  <input id="amountInput" type="text" inputmode="decimal" value="0.001" required />
+                  <div class="input-right">
+                    <button id="maxBtn" class="btn btn-sm" type="button">MAX</button>
+                    <span class="mono muted" style="font-weight: 600">ETH</span>
+                  </div>
+                </div>
+                <div class="chips" style="margin-bottom: 12px">
+                  <button class="chip bridge-preset" data-amt="0.001" type="button">0.001 ETH</button>
+                  <button class="chip bridge-preset" data-amt="0.01" type="button">0.01 ETH</button>
+                  <button class="chip bridge-preset" data-amt="0.05" type="button">0.05 ETH</button>
+                  <button class="chip bridge-preset" data-amt="0.1" type="button">0.1 ETH</button>
+                </div>
+
+                <div class="card-subtle" style="margin-bottom: 12px; background: var(--surface)">
+                  <div class="row" style="margin-bottom: 8px">
+                    <span class="muted" style="font-weight: 600">To: GIWA Sepolia (91342)</span>
+                    <span class="mono muted" id="l2Bal">Bal: -- ETH</span>
+                  </div>
+                  <label for="recipientInput">Destination Recipient (optional, defaults to sender)</label>
+                  <input id="recipientInput" class="mono" type="text" placeholder="0x..." />
+                </div>
+
+                <button id="bridgeBtn" class="btn btn-blue full" type="submit">Bridge ETH to GIWA Sepolia</button>
+              </form>
+            </div>
+
+            <div id="bridgeStatusCard" style="display: none; flex-direction: column; gap: 10px; margin-top: 12px">
+              <div class="stepper">
+                <div class="step" id="step1">1. Submit L1</div>
+                <div class="step" id="step2">2. Sepolia L1</div>
+                <div class="step" id="step3">3. GIWA L2</div>
+              </div>
+              <div id="bridgeBanner" class="status-banner">Idle</div>
+              <div id="bridgeLinks" style="display: flex; flex-direction: column; gap: 4px; font-size: 0.82rem"></div>
+              <ul id="bridgeLogs" class="logs"></ul>
+            </div>
+          </div>
+
+          <!-- RIGHT: ROUTE DETAILS & PROTOCOL CONTRACTS -->
+          <div style="display: flex; flex-direction: column; gap: 14px">
+            <div class="card">
+              <h3 style="font-size: 0.96rem; margin-bottom: 10px">Bridge Route &amp; Gas Guard</h3>
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <div class="row card-subtle">
+                  <span class="muted">Portal Contract</span>
+                  <span class="mono" style="font-size: 0.78rem" id="portalShort">--</span>
+                </div>
+                <div class="row card-subtle">
+                  <span class="muted">L1 Gas Protection</span>
+                  <span class="mono" style="font-size: 0.78rem; color: var(--ok)">1.5x buffer (120k floor)</span>
+                </div>
+                <div class="row card-subtle">
+                  <span class="muted">Finality Window</span>
+                  <span class="mono" style="font-size: 0.78rem">~1–2 min L2 mint</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3 style="font-size: 0.96rem; margin-bottom: 10px">GIWA &amp; Ammora Contracts</h3>
+              <div id="contractLinksBox" style="display: flex; flex-direction: column; gap: 8px; font-size: 0.82rem">
+                <span class="muted">Loading contract addresses...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PROTOCOL UTILITIES & ADD-ONS (2x2 Grid, all real GIWA/Ammora functionality) -->
+        <div>
+          <div class="row" style="margin-bottom: 10px">
+            <div>
+              <h2 style="font-size: 1.08rem">Ammora Power Tools &amp; Add-ons</h2>
+              <div class="muted">Native helpers for wrapping quote liquidity, network config, and graduating curves</div>
+            </div>
+          </div>
+          <div class="addons-grid">
+            <div class="card">
+              <div class="row" style="margin-bottom: 6px">
+                <h3 style="font-size: 0.96rem">WETH9 Wrapper</h3>
+                <span class="tag blue">Quote Liquidity</span>
+              </div>
+              <p class="muted" style="margin: 0 0 12px">
+                Ammora V4 curves settle buys and sells in WETH. Wrap GIWA ETH into WETH or unwrap anytime.
+              </p>
+              <div class="row" style="gap: 8px">
+                <input id="addonWrapAmt" class="mono" type="text" value="0.01" style="flex: 1" />
+                <button id="addonWrapBtn" class="btn btn-blue btn-sm" type="button">Wrap ETH</button>
+                <button id="addonUnwrapBtn" class="btn btn-sm" type="button">Unwrap</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="row" style="margin-bottom: 6px">
+                <h3 style="font-size: 0.96rem">GIWA Sepolia RPC Setup</h3>
+                <span class="tag ok">Chain 91342</span>
+              </div>
+              <p class="muted" style="margin: 0 0 12px">
+                Add GIWA Sepolia (<span class="mono">https://sepolia-rpc.giwa.io</span>) directly to MetaMask in one click.
+              </p>
+              <button id="addonGiwaBtn" class="btn btn-blue btn-sm" type="button">Add GIWA Sepolia to MetaMask</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- RECENT CROSS-CHAIN TRANSITS -->
+        <div class="card">
+          <div class="row" style="margin-bottom: 10px">
+            <h3 style="font-size: 0.98rem">Recent Cross-Chain Transits</h3>
+            <button id="clearHistoryBtn" class="btn btn-sm" type="button">Clear History</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>L1 Tx</th>
+                  <th>Route</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Explorer</th>
+                </tr>
+              </thead>
+              <tbody id="historyBody">
+                <tr>
+                  <td colspan="5" class="muted">No recent bridge transactions in this browser yet.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <aside class="disclaimer-box" aria-label="Official smart contracts and testnet disclaimer">
+        <div class="disclaimer-icon" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3 4.5 6v5.4c0 4.7 3.2 8.35 7.5 9.6 4.3-1.25 7.5-4.9 7.5-9.6V6L12 3Z" />
+            <path d="m8.7 12 2.1 2.1 4.5-4.5" />
+          </svg>
+        </div>
+        <div>
+          <strong style="color: var(--ink)">Official GIWA &amp; Ammora Smart Contracts • Testnet Disclaimer</strong>
+          <div style="margin-top: 3px">
+            Morrales routes all transactions directly to the official <strong>GIWA Sepolia OP Stack</strong> bridge contracts
+            (<span class="mono">OptimismPortalProxy</span> on Ethereum Sepolia) and the official <strong>Ammora Protocol V4</strong>
+            contracts (<span class="mono">LaunchFactory</span>, <span class="mono">ConfigRegistry</span>, and <span class="mono">FeePolicy</span> via <span class="mono">@ammora-protocol/sdk</span>) on GIWA Sepolia (<span class="mono">91342</span>).
+            Transactions are non-custodial and signed exclusively by your browser wallet. GIWA Sepolia and Ammora V4 are beta testnet software—use testnet ETH/WETH only and verify calldata in your wallet before confirming.
+          </div>
+        </div>
+      </aside>
+
+      <footer class="footer">
+        <div class="footer-grid">
+          <div>
+            <div class="brand" style="margin-bottom: 8px">
+              <svg width="28" height="28" viewBox="0 0 64 64" fill="none" aria-hidden="true" style="flex-shrink: 0">
+                <defs>
+                  <linearGradient id="foot-m-bg" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#3B82F6" />
+                    <stop offset="55%" stop-color="#2563EB" />
+                    <stop offset="100%" stop-color="#1D4ED8" />
+                  </linearGradient>
+                  <linearGradient id="foot-m-arc" x1="16" y1="44" x2="50" y2="18" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#DBEAFE" />
+                    <stop offset="100%" stop-color="#FFFFFF" />
+                  </linearGradient>
+                </defs>
+                <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#foot-m-bg)" />
+                <rect x="3" y="3" width="58" height="58" rx="15" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="1.5" />
+                <path d="M14 45 C26 44, 36 35, 48 19" stroke="#93C5FD" stroke-opacity="0.45" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 3" />
+                <path d="M16 45 V23 L30 35 L48 19 V45" stroke="url(#foot-m-arc)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+                <circle cx="48" cy="19" r="4" fill="#FFFFFF" />
+                <circle cx="48" cy="19" r="7" stroke="#BAE6FD" stroke-opacity="0.55" stroke-width="1.5" />
+              </svg>
+              <div>
+                <div class="brand-name" style="font-size: 0.96rem">Morrales</div>
+                <div class="brand-tag">GIWA Sepolia Launchpad &amp; Bridge</div>
+              </div>
+            </div>
+            <p class="muted" style="margin: 0">
+              Non-custodial interface built on official GIWA OP Stack bridge contracts and the Ammora Protocol SDK.
+            </p>
+          </div>
+
+          <div class="footer-col">
+            <h4>Official GIWA Bridge</h4>
+            <div id="footerGiwaContracts" class="footer-links">
+              <span class="muted">Loading contracts...</span>
+            </div>
+          </div>
+
+          <div class="footer-col">
+            <h4>Official Ammora V4</h4>
+            <div id="footerAmmoraContracts" class="footer-links">
+              <span class="muted">Loading contracts...</span>
+            </div>
+          </div>
+
+          <div class="footer-col">
+            <h4>Documentation &amp; Explorers</h4>
+            <div class="footer-links">
+              <a href="https://docs.giwa.io/giwa-chain/en/get-started/bridging/eth" target="_blank" rel="noreferrer">GIWA Bridge Docs &#8599;</a>
+              <a href="https://ammora-docs.vercel.app" target="_blank" rel="noreferrer">Ammora SDK Docs &#8599;</a>
+              <a href="https://sepolia-explorer.giwa.io" target="_blank" rel="noreferrer">GIWA Blockscout &#8599;</a>
+              <a href="https://sepolia.etherscan.io" target="_blank" rel="noreferrer">Sepolia Etherscan &#8599;</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-base">
+          <span>Morrales • Powered by official GIWA &amp; Ammora smart contracts (<span class="mono">@ammora-protocol/sdk v0.3.9</span>)</span>
+          <span class="mono">Sepolia (11155111) &harr; GIWA Sepolia (91342)</span>
+        </div>
+      </footer>
+    </div>
+
+    <script>
+      const SEPOLIA_HEX = "0xaa36a7";
+      const GIWA_HEX = "0x164ce";
+      const HISTORY_KEY = "morrales_bridge_history_v1";
+
+      const state = {
+        view: "launch",
+        boardMode: "cards",
+        info: null,
+        address: null,
+        chainId: null,
+        launches: [],
+        configs: [],
+        filter: "all",
+        sort: "newest",
+        search: "",
+        selectedCurve: null,
+        tradeSide: "buy",
+        tradeBalances: null,
+        l1EthRaw: null,
+        busy: false,
+      };
+
+      const el = (id) => document.getElementById(id);
+      const shortAddr = (a) => (a ? `${a.slice(0, 6)}...${a.slice(-4)}` : "Not connected");
+      const isHash = (h) => typeof h === "string" && /^0x[0-9a-fA-F]{64}$/.test(h);
+
+      async function apiJson(url, options) {
+        const res = await fetch(url, options);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+        return data;
+      }
+
+      function formatAge(sec) {
+        if (!Number.isFinite(sec) || sec < 60) return `${Math.max(0, sec | 0)}s`;
+        if (sec < 3600) return `${Math.floor(sec / 60)}m`;
+        if (sec < 86400) return `${Math.floor(sec / 3600)}h`;
+        return `${Math.floor(sec / 86400)}d`;
+      }
+
+      function formatNum(val, digits = 5) {
+        const n = Number(val);
+        if (!Number.isFinite(n)) return "--";
+        if (n === 0) return "0";
+        if (n < 0.00001) return n.toExponential(2);
+        return n.toFixed(digits).replace(/\.?0+$/, "");
+      }
+
+      function makeAvatar(launch, small = false) {
+        const box = document.createElement("div");
+        box.className = small ? "avatar sm" : "avatar";
+        if (launch.image) {
+          const img = document.createElement("img");
+          img.src = launch.image;
+          img.alt = launch.symbol;
+          img.referrerPolicy = "no-referrer";
+          img.onerror = () => {
+            box.textContent = (launch.symbol || "?").slice(0, 2).toUpperCase();
+          };
+          box.appendChild(img);
+        } else {
+          box.textContent = (launch.symbol || "?").slice(0, 2).toUpperCase();
+        }
+        return box;
+      }
+
+      function phaseBadge(launch) {
+        const span = document.createElement("span");
+        const cls =
+          launch.phase === "Migrated" ? "ok" : launch.phase === "ReadyToMigrate" ? "warn" : "blue";
+        span.className = `tag ${cls}`;
+        span.textContent = launch.phase === "ReadyToMigrate" ? "Ready to Migrate" : launch.phase;
+        return span;
+      }
+
+      function buildCurveSvg(launch) {
+        const svgNS = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(svgNS, "svg");
+        svg.setAttribute("viewBox", "0 0 560 150");
+        svg.setAttribute("width", "100%");
+        svg.setAttribute("height", "150");
+
+        const bg = document.createElementNS(svgNS, "rect");
+        bg.setAttribute("x", "0");
+        bg.setAttribute("y", "0");
+        bg.setAttribute("width", "560");
+        bg.setAttribute("height", "150");
+        bg.setAttribute("rx", "10");
+        bg.setAttribute("fill", "#ffffff");
+        bg.setAttribute("stroke", "#e2e8f0");
+        svg.appendChild(bg);
+
+        for (const y of [40, 80, 120]) {
+          const line = document.createElementNS(svgNS, "line");
+          line.setAttribute("x1", "20");
+          line.setAttribute("x2", "540");
+          line.setAttribute("y1", String(y));
+          line.setAttribute("y2", String(y));
+          line.setAttribute("stroke", "#f1f5f9");
+          svg.appendChild(line);
+        }
+
+        const curvePath = document.createElementNS(svgNS, "path");
+        curvePath.setAttribute("d", "M 24 128 Q 310 120 532 26");
+        curvePath.setAttribute("fill", "none");
+        curvePath.setAttribute("stroke", "#2563eb");
+        curvePath.setAttribute("stroke-width", "3");
+        curvePath.setAttribute("stroke-linecap", "round");
+        svg.appendChild(curvePath);
+
+        const areaPath = document.createElementNS(svgNS, "path");
+        areaPath.setAttribute("d", "M 24 128 Q 310 120 532 26 L 532 128 Z");
+        areaPath.setAttribute("fill", "rgba(37, 99, 235, 0.08)");
+        svg.appendChild(areaPath);
+
+        const t = Math.min(1, Math.max(0.02, (launch.progressPct || 0) / 100));
+        const px = (1 - t) * (1 - t) * 24 + 2 * (1 - t) * t * 310 + t * t * 532;
+        const py = (1 - t) * (1 - t) * 128 + 2 * (1 - t) * t * 120 + t * t * 26;
+
+        const marker = document.createElementNS(svgNS, "circle");
+        marker.setAttribute("cx", px.toFixed(1));
+        marker.setAttribute("cy", py.toFixed(1));
+        marker.setAttribute("r", "6");
+        marker.setAttribute("fill", "#2563eb");
+        marker.setAttribute("stroke", "#ffffff");
+        marker.setAttribute("stroke-width", "2");
+        svg.appendChild(marker);
+
+        const gradDot = document.createElementNS(svgNS, "circle");
+        gradDot.setAttribute("cx", "532");
+        gradDot.setAttribute("cy", "26");
+        gradDot.setAttribute("r", "4.5");
+        gradDot.setAttribute("fill", "#059669");
+        svg.appendChild(gradDot);
+
+        const lbl = document.createElementNS(svgNS, "text");
+        lbl.setAttribute("x", "28");
+        lbl.setAttribute("y", "24");
+        lbl.setAttribute("font-size", "11");
+        lbl.setAttribute("fill", "#475569");
+        lbl.setAttribute("font-family", "IBM Plex Mono, monospace");
+        lbl.textContent = `Current: ${formatNum(launch.quoteReserveEth, 4)} WETH (${launch.progressPct}%)`;
+        svg.appendChild(lbl);
+
+        const lbl2 = document.createElementNS(svgNS, "text");
+        lbl2.setAttribute("x", "360");
+        lbl2.setAttribute("y", "140");
+        lbl2.setAttribute("font-size", "11");
+        lbl2.setAttribute("fill", "#059669");
+        lbl2.setAttribute("font-family", "IBM Plex Mono, monospace");
+        lbl2.textContent = `Target: ${formatNum(launch.migrationTargetEth, 4)} WETH`;
+        svg.appendChild(lbl2);
+
+        return svg;
+      }
+
+      function switchView(viewName) {
+        state.view = viewName;
+        document.querySelectorAll(".nav-tab[data-view]").forEach((b) => {
+          b.classList.toggle("active", b.dataset.view === viewName);
+        });
+        document.querySelectorAll(".view").forEach((v) => {
+          v.classList.toggle("active", v.id === `view-${viewName}`);
+        });
+        updateWalletUI();
+        if (viewName === "boards") refreshTradeState();
+        if (viewName === "bridge") refreshBridgeBalances();
+        setTimeout(() => window.dispatchEvent(new Event("resize")), 20);
+      }
+
+      function updateWalletUI() {
+        const connected = Boolean(state.address);
+        el("connectBtn").style.display = connected ? "none" : "inline-flex";
+        el("walletPillBtn").style.display = connected ? "inline-flex" : "none";
+
+        if (connected) {
+          el("addrPill").textContent = `${shortAddr(state.address)} ▾`;
+          el("fullAddrText").textContent = state.address;
+          el("popExplorerLink").href = `https://sepolia-explorer.giwa.io/address/${state.address}`;
+        } else {
+          el("walletPopover").classList.remove("open");
+        }
+
+        const netDot = el("netDot");
+        const netLabel = el("netLabel");
+        if (!connected) {
+          netDot.className = "net-dot";
+          netLabel.textContent = "GIWA Sepolia";
+        } else if (state.chainId?.toLowerCase() === GIWA_HEX) {
+          netDot.className = "net-dot ok";
+          netLabel.textContent = "GIWA Sepolia";
+        } else if (state.chainId?.toLowerCase() === SEPOLIA_HEX) {
+          netDot.className = "net-dot blue";
+          netLabel.textContent = "Sepolia L1";
+        } else {
+          netDot.className = "net-dot warn";
+          netLabel.textContent = "Switch Network";
+        }
+
+        const needGiwa = connected && state.chainId?.toLowerCase() !== GIWA_HEX;
+        const needSepolia = connected && state.chainId?.toLowerCase() !== SEPOLIA_HEX;
+        el("switchGiwaTradeBtn").style.display = needGiwa ? "inline-flex" : "none";
+        el("switchGiwaCreateBtn").style.display = needGiwa ? "inline-flex" : "none";
+        el("switchSepoliaBtn").style.display = needSepolia ? "inline-flex" : "none";
+      }
+
+      async function connectWallet() {
+        if (!window.ethereum) throw new Error("Install MetaMask or an EIP-1193 wallet first.");
+        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+        state.address = accounts[0] || null;
+        state.chainId = await window.ethereum.request({ method: "eth_chainId" });
+        updateWalletUI();
+        refreshHeaderBal();
+        refreshTradeState();
+        refreshBridgeBalances();
+      }
+
+      async function switchChain(targetHex) {
+        const current = await window.ethereum.request({ method: "eth_chainId" });
+        state.chainId = current;
+        if (current?.toLowerCase() === targetHex) {
+          updateWalletUI();
+          return;
+        }
+        try {
+          await window.ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: targetHex }],
+          });
+        } catch (err) {
+          if (err?.code === 4902 && targetHex === GIWA_HEX) {
+            await addGiwaNetwork();
+          } else {
+            throw err;
+          }
+        }
+        state.chainId = targetHex;
+        updateWalletUI();
+      }
+
+      async function addGiwaNetwork() {
+        if (!window.ethereum) {
+          alert("Install MetaMask first to add GIWA Sepolia.");
+          return;
+        }
+        await window.ethereum.request({
+          method: "wallet_addEthereumChain",
+          params: [
+            {
+              chainId: GIWA_HEX,
+              chainName: "GIWA Sepolia",
+              nativeCurrency: { name: "Sepolia Ether", symbol: "ETH", decimals: 18 },
+              rpcUrls: ["https://sepolia-rpc.giwa.io"],
+              blockExplorerUrls: ["https://sepolia-explorer.giwa.io"],
+            },
+          ],
+        });
+      }
+
+      async function waitForL2Receipt(hash) {
+        for (let i = 0; i < 60; i++) {
+          const r = await apiJson(`/api/launchpad/tx-receipt?hash=${encodeURIComponent(hash)}`);
+          if (r.status === "success") return r;
+          if (r.status === "reverted") throw new Error(`Transaction reverted on GIWA Sepolia: ${hash}`);
+          await new Promise((res) => setTimeout(res, 1500));
+        }
+        throw new Error(`Timed out waiting for GIWA receipt: ${hash}`);
+      }
+
+      async function refreshHeaderBal() {
+        if (!state.address) {
+          el("headerBalPill").textContent = "-- ETH";
+          el("popGiwaEth").textContent = "--";
+          el("popGiwaWeth").textContent = "--";
+          return;
+        }
+        try {
+          const bal = await apiJson(`/api/launchpad/balances?account=${encodeURIComponent(state.address)}`);
+          el("headerBalPill").textContent = `${formatNum(bal.eth, 4)} ETH`;
+          el("popGiwaEth").textContent = `${formatNum(bal.eth, 4)} ETH`;
+          el("popGiwaWeth").textContent = `${formatNum(bal.weth, 4)} WETH`;
+        } catch {}
+      }
+
+      // --- FILTERING & RENDERING ---
+      function filteredLaunches() {
+        const q = state.search.trim().toLowerCase();
+        let list = state.launches.filter((l) => {
+          if (state.filter === "trading" && l.phase !== "Trading") return false;
+          if (state.filter === "graduating" && (l.phase !== "Trading" || l.progressPct < 5)) return false;
+          if (state.filter === "graduated" && l.phase === "Trading") return false;
+          if (
+            state.filter === "mine" &&
+            (!state.address || l.creator.toLowerCase() !== state.address.toLowerCase())
+          ) {
+            return false;
+          }
+          if (q) {
+            const hay = `${l.name} ${l.symbol} ${l.token} ${l.curve}`.toLowerCase();
+            if (!hay.includes(q)) return false;
+          }
+          return true;
+        });
+
+        list = [...list];
+        if (state.sort === "progress") list.sort((a, b) => b.progressBps - a.progressBps);
+        else if (state.sort === "raised") list.sort((a, b) => Number(b.quoteReserveEth) - Number(a.quoteReserveEth));
+        else if (state.sort === "fee") list.sort((a, b) => a.currentFeeBps - b.currentFeeBps);
+        else list.sort((a, b) => Number(BigInt(b.blockNumber) - BigInt(a.blockNumber)));
+        return list;
+      }
+
+      function topKingLaunch() {
+        if (!state.launches.length) return null;
+        return [...state.launches].sort((a, b) => Number(b.quoteReserveEth) - Number(a.quoteReserveEth))[0];
+      }
+
+      function openLaunchInBoards(curve) {
+        state.selectedCurve = curve;
+        populateTradeSelect();
+        el("tradeCurveSelect").value = curve;
+        renderBoardFeatured();
+        switchView("boards");
+      }
+
+      function renderLaunchSpotlight() {
+        const box = el("launchSpotlight");
+        box.textContent = "";
+        const king = topKingLaunch();
+        if (!king) {
+          box.textContent = "No launches found in the selected block window.";
+          return;
+        }
+
+        const topRow = document.createElement("div");
+        topRow.className = "row";
+        const left = document.createElement("div");
+        left.style.display = "flex";
+        left.style.alignItems = "center";
+        left.style.gap = "12px";
+        left.appendChild(makeAvatar(king));
+        const info = document.createElement("div");
+        const titleLine = document.createElement("div");
+        titleLine.style.display = "flex";
+        titleLine.style.alignItems = "center";
+        titleLine.style.gap = "8px";
+        const kBadge = document.createElement("span");
+        kBadge.className = "tag blue";
+        kBadge.textContent = "Top Curve";
+        const sym = document.createElement("strong");
+        sym.textContent = `${king.name} (${king.symbol})`;
+        titleLine.append(kBadge, sym);
+        const sub = document.createElement("div");
+        sub.className = "muted mono";
+        sub.textContent = `Raised ${formatNum(king.quoteReserveEth, 4)} / ${formatNum(king.migrationTargetEth, 4)} WETH • ${formatAge(king.ageSeconds)} old`;
+        info.append(titleLine, sub);
+        left.appendChild(info);
+
+        const cta = document.createElement("button");
+        cta.type = "button";
+        cta.className = "btn btn-blue btn-sm";
+        cta.textContent = `Trade ${king.symbol}`;
+        cta.addEventListener("click", () => openLaunchInBoards(king.curve));
+        topRow.append(left, cta);
+
+        const progRow = document.createElement("div");
+        progRow.style.marginTop = "12px";
+        const progHead = document.createElement("div");
+        progHead.className = "row muted";
+        progHead.style.marginBottom = "5px";
+        const pl = document.createElement("span");
+        pl.textContent = "Bonding Curve Progress";
+        const pr = document.createElement("span");
+        pr.className = "mono";
+        pr.textContent = `${king.progressPct}%`;
+        progHead.append(pl, pr);
+        const track = document.createElement("div");
+        track.className = "progress-track";
+        const fill = document.createElement("div");
+        fill.className = "progress-fill";
+        fill.style.width = `${Math.min(100, Math.max(2, king.progressPct))}%`;
+        track.appendChild(fill);
+        progRow.append(progHead, track);
+
+        box.append(topRow, progRow);
+      }
+
+      function renderActiveCurvesGrid() {
+        const grid = el("activeCurvesGrid");
+        grid.textContent = "";
+        const rows = filteredLaunches();
+        el("activeCurvesCount").textContent = `${rows.length} curves shown`;
+
+        if (!rows.length) {
+          const empty = document.createElement("div");
+          empty.className = "card muted";
+          empty.textContent = "No launches match the active filter.";
+          grid.appendChild(empty);
+          return;
+        }
+
+        for (const l of rows.slice(0, 12)) {
+          const card = document.createElement("div");
+          card.className = "curve-card";
+
+          const head = document.createElement("div");
+          head.className = "row";
+          const left = document.createElement("div");
+          left.style.display = "flex";
+          left.style.alignItems = "center";
+          left.style.gap = "10px";
+          left.appendChild(makeAvatar(l, true));
+          const names = document.createElement("div");
+          const s = document.createElement("div");
+          s.style.fontWeight = "700";
+          s.textContent = l.symbol;
+          const n = document.createElement("div");
+          n.className = "muted";
+          n.textContent = `${l.name} • ${formatAge(l.ageSeconds)}`;
+          names.append(s, n);
+          left.appendChild(names);
+          head.append(left, phaseBadge(l));
+
+          const progWrap = document.createElement("div");
+          const pRow = document.createElement("div");
+          pRow.className = "row muted";
+          pRow.style.marginBottom = "4px";
+          const p1 = document.createElement("span");
+          p1.textContent = `Raised ${formatNum(l.quoteReserveEth, 4)} WETH`;
+          const p2 = document.createElement("span");
+          p2.className = "mono";
+          p2.textContent = `${l.progressPct}%`;
+          pRow.append(p1, p2);
+          const track = document.createElement("div");
+          track.className = "progress-track";
+          const fill = document.createElement("div");
+          fill.className = "progress-fill";
+          fill.style.width = `${Math.min(100, Math.max(2, l.progressPct))}%`;
+          track.appendChild(fill);
+          progWrap.append(pRow, track);
+
+          const foot = document.createElement("div");
+          foot.className = "row";
+          const meta = document.createElement("span");
+          meta.className = "muted mono";
+          meta.textContent = `Fee ${(l.currentFeeBps / 100).toFixed(2)}%`;
+          const btns = document.createElement("div");
+          btns.style.display = "flex";
+          btns.style.gap = "6px";
+          const tradeBtn = document.createElement("button");
+          tradeBtn.type = "button";
+          tradeBtn.className = "btn btn-blue btn-sm";
+          tradeBtn.textContent = "Trade";
+          tradeBtn.addEventListener("click", () => openLaunchInBoards(l.curve));
+          const exp = document.createElement("a");
+          exp.className = "btn btn-sm";
+          exp.href = `https://sepolia-explorer.giwa.io/token/${l.token}`;
+          exp.target = "_blank";
+          exp.rel = "noreferrer";
+          exp.textContent = "CA";
+          btns.append(tradeBtn, exp);
+          foot.append(meta, btns);
+
+          card.append(head, progWrap, foot);
+          grid.appendChild(card);
+        }
+      }
+
+      function renderBoardFeatured() {
+        const box = el("boardFeatureCard");
+        box.textContent = "";
+        const current = selectedLaunch() || topKingLaunch();
+        if (!current) {
+          box.textContent = "No launch selected.";
+          return;
+        }
+
+        const head = document.createElement("div");
+        head.className = "row";
+        head.style.marginBottom = "12px";
+        const left = document.createElement("div");
+        left.style.display = "flex";
+        left.style.alignItems = "center";
+        left.style.gap = "12px";
+        left.appendChild(makeAvatar(current));
+        const txt = document.createElement("div");
+        const h2 = document.createElement("h2");
+        h2.style.fontSize = "1.2rem";
+        h2.textContent = `${current.symbol} / WETH`;
+        const sub = document.createElement("div");
+        sub.className = "muted mono";
+        sub.textContent = `${current.name} • CA ${shortAddr(current.token)} • Creator ${shortAddr(current.creator)}`;
+        txt.append(h2, sub);
+        left.appendChild(txt);
+
+        const tags = document.createElement("div");
+        tags.style.display = "flex";
+        tags.style.gap = "6px";
+        tags.style.flexWrap = "wrap";
+        tags.appendChild(phaseBadge(current));
+        const cfgTag = document.createElement("span");
+        cfgTag.className = "tag";
+        cfgTag.textContent = `Config #${current.configId}`;
+        const feeTag = document.createElement("span");
+        feeTag.className = "tag";
+        feeTag.textContent = `Fee ${(current.currentFeeBps / 100).toFixed(2)}%`;
+        tags.append(cfgTag, feeTag);
+        head.append(left, tags);
+
+        const progBox = document.createElement("div");
+        progBox.className = "card-subtle";
+        progBox.style.marginBottom = "12px";
+        const pHead = document.createElement("div");
+        pHead.className = "row";
+        pHead.style.marginBottom = "6px";
+        const pL = document.createElement("span");
+        pL.className = "muted";
+        pL.textContent = "Bonding Curve Progress";
+        const pR = document.createElement("span");
+        pR.className = "mono";
+        pR.style.fontWeight = "600";
+        pR.textContent = `${current.progressPct}% (${formatNum(current.quoteReserveEth, 4)} / ${formatNum(current.migrationTargetEth, 4)} WETH)`;
+        pHead.append(pL, pR);
+        const track = document.createElement("div");
+        track.className = "progress-track";
+        const fill = document.createElement("div");
+        fill.className = "progress-fill";
+        fill.style.width = `${Math.min(100, Math.max(2, current.progressPct))}%`;
+        track.appendChild(fill);
+        progBox.append(pHead, track);
+
+        const chartWrap = document.createElement("div");
+        chartWrap.className = "chart-box";
+        chartWrap.style.marginBottom = "12px";
+
+        const stage = document.createElement("div");
+        stage.className = "stage-3d";
+        stage.id = "board3dStage";
+
+        const canvas = document.createElement("canvas");
+        canvas.id = "board3dCanvas";
+
+        const hud = document.createElement("div");
+        hud.className = "stage-hud";
+        const r1 = document.createElement("div");
+        r1.className = "stage-hud-row";
+        const hudCur = document.createElement("span");
+        hudCur.className = "tag blue mono";
+        hudCur.textContent = `Current: ${formatNum(current.quoteReserveEth, 4)} WETH (${current.progressPct}%)`;
+        const hudTarget = document.createElement("span");
+        hudTarget.className = "tag ok mono";
+        hudTarget.textContent = `Target: ${formatNum(current.migrationTargetEth, 4)} WETH`;
+        r1.append(hudCur, hudTarget);
+
+        const r2 = document.createElement("div");
+        r2.className = "stage-hud-row";
+        const hint = document.createElement("span");
+        hint.className = "muted mono";
+        hint.style.fontSize = "0.7rem";
+        hint.textContent = "3D Bonding Curve • Drag to orbit";
+        const phaseTxt = document.createElement("span");
+        phaseTxt.className = "muted mono";
+        phaseTxt.style.fontSize = "0.7rem";
+        phaseTxt.textContent = current.phase;
+        r2.append(hint, phaseTxt);
+
+        hud.append(r1, r2);
+        stage.append(canvas, hud);
+        chartWrap.appendChild(stage);
+        if (window.__morrales3d?.mountBoard) {
+          requestAnimationFrame(() => window.__morrales3d.mountBoard(canvas, current));
+        } else {
+          stage.replaceWith(buildCurveSvg(current));
+        }
+
+        const statsRow = document.createElement("div");
+        statsRow.style.display = "grid";
+        statsRow.style.gridTemplateColumns = "repeat(3, 1fr)";
+        statsRow.style.gap = "10px";
+        for (const [k, v] of [
+          ["Base Reserve", `${formatNum(current.baseReserveFormatted, 2)} ${current.symbol}`],
+          ["Age", `${formatAge(current.ageSeconds)} (Block ${current.blockNumber})`],
+          ["Curve Contract", shortAddr(current.curve)],
+        ]) {
+          const sb = document.createElement("div");
+          sb.className = "card-subtle";
+          const sk = document.createElement("div");
+          sk.className = "muted";
+          sk.style.fontSize = "0.72rem";
+          sk.textContent = k;
+          const sv = document.createElement("div");
+          sv.className = "mono";
+          sv.style.fontWeight = "600";
+          sv.style.fontSize = "0.86rem";
+          sv.textContent = v;
+          sb.append(sk, sv);
+          statsRow.appendChild(sb);
+        }
+
+        box.append(head, progBox, chartWrap, statsRow);
+      }
+
+      function renderBoardsList() {
+        const cardsBox = el("boardsCardsView");
+        const tbody = el("boardsTableBody");
+        cardsBox.textContent = "";
+        tbody.textContent = "";
+        const rows = filteredLaunches();
+
+        for (const l of rows) {
+          // Card
+          const card = document.createElement("div");
+          card.className = "curve-card";
+          const head = document.createElement("div");
+          head.className = "row";
+          const left = document.createElement("div");
+          left.style.display = "flex";
+          left.style.alignItems = "center";
+          left.style.gap = "8px";
+          left.appendChild(makeAvatar(l, true));
+          const lbl = document.createElement("div");
+          const s = document.createElement("div");
+          s.style.fontWeight = "700";
+          s.textContent = l.symbol;
+          const n = document.createElement("div");
+          n.className = "muted";
+          n.textContent = l.name;
+          lbl.append(s, n);
+          left.appendChild(lbl);
+          head.append(left, phaseBadge(l));
+
+          const mid = document.createElement("div");
+          mid.className = "row muted mono";
+          mid.innerHTML = "";
+          const m1 = document.createElement("span");
+          m1.textContent = `${formatNum(l.quoteReserveEth, 4)} WETH`;
+          const m2 = document.createElement("span");
+          m2.textContent = `${l.progressPct}%`;
+          mid.append(m1, m2);
+
+          const track = document.createElement("div");
+          track.className = "progress-track";
+          const fill = document.createElement("div");
+          fill.className = "progress-fill";
+          fill.style.width = `${Math.min(100, Math.max(2, l.progressPct))}%`;
+          track.appendChild(fill);
+
+          const foot = document.createElement("div");
+          foot.className = "row";
+          const age = document.createElement("span");
+          age.className = "muted";
+          age.textContent = `${formatAge(l.ageSeconds)} old`;
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "btn btn-blue btn-sm";
+          btn.textContent = "Select";
+          btn.addEventListener("click", () => openLaunchInBoards(l.curve));
+          foot.append(age, btn);
+
+          card.append(head, mid, track, foot);
+          cardsBox.appendChild(card);
+
+          // Table row
+          const tr = document.createElement("tr");
+          const td1 = document.createElement("td");
+          td1.textContent = `${l.symbol} — ${l.name}`;
+          const td2 = document.createElement("td");
+          td2.appendChild(phaseBadge(l));
+          const td3 = document.createElement("td");
+          td3.textContent = formatAge(l.ageSeconds);
+          const td4 = document.createElement("td");
+          td4.className = "mono";
+          td4.textContent = `${l.progressPct}%`;
+          const td5 = document.createElement("td");
+          td5.className = "mono";
+          td5.textContent = `${formatNum(l.quoteReserveEth, 4)} WETH`;
+          const td6 = document.createElement("td");
+          td6.className = "mono";
+          td6.textContent = `${(l.currentFeeBps / 100).toFixed(2)}%`;
+          const td7 = document.createElement("td");
+          const tbtn = document.createElement("button");
+          tbtn.type = "button";
+          tbtn.className = "btn btn-blue btn-sm";
+          tbtn.textContent = "Trade";
+          tbtn.addEventListener("click", () => openLaunchInBoards(l.curve));
+          td7.appendChild(tbtn);
+          tr.append(td1, td2, td3, td4, td5, td6, td7);
+          tbody.appendChild(tr);
+        }
+      }
+
+      function populateTradeSelect() {
+        const sel = el("tradeCurveSelect");
+        const prev = state.selectedCurve || sel.value;
+        sel.textContent = "";
+        for (const l of state.launches) {
+          const opt = document.createElement("option");
+          opt.value = l.curve;
+          opt.textContent = `${l.symbol} — ${l.name} (${l.progressPct}%)`;
+          sel.appendChild(opt);
+        }
+        if (prev && state.launches.some((l) => l.curve === prev)) {
+          sel.value = prev;
+          state.selectedCurve = prev;
+        } else if (state.launches[0]) {
+          sel.value = state.launches[0].curve;
+          state.selectedCurve = state.launches[0].curve;
+        }
+      }
+
+      async function loadLaunches() {
+        const blocks = el("lookbackSelect").value;
+        const data = await apiJson(`/api/launchpad/launches?blocks=${encodeURIComponent(blocks)}`);
+        state.launches = data.launches || [];
+
+        const king = topKingLaunch();
+        const gradCount = state.launches.filter((l) => l.phase !== "Trading").length;
+        el("kpiLaunches").textContent = String(state.launches.length);
+        el("kpiConfigs").textContent = String(data.totalConfigs || "--");
+        el("kpiKing").textContent = king ? king.symbol : "--";
+        el("kpiKingSub").textContent = king ? `${formatNum(king.quoteReserveEth, 4)} WETH (${king.progressPct}%)` : "No active curves";
+        el("kpiGraduated").textContent = String(gradCount);
+
+        el("tickerBlock").innerHTML = "";
+        el("tickerBlock").textContent = `Block: ${data.blockNumber}`;
+        el("tickerLaunches").textContent = `Launches: ${state.launches.length}`;
+        el("tickerKing").textContent = king ? `Top Curve: ${king.symbol} (${king.progressPct}%)` : "Top Curve: --";
+
+        renderLaunchSpotlight();
+        renderActiveCurvesGrid();
+        populateTradeSelect();
+        renderBoardFeatured();
+        renderBoardsList();
+      }
+
+      async function loadConfigs() {
+        const data = await apiJson("/api/launchpad/configs");
+        state.configs = data.configs || [];
+        const sel = el("configSelect");
+        sel.textContent = "";
+        for (const c of state.configs) {
+          const opt = document.createElement("option");
+          opt.value = c.configId;
+          opt.textContent = `Config #${c.configId} • Target ${c.migrationQuoteThresholdEth} WETH • Fee ${(c.cliffFeeBps / 100).toFixed(2)}%`;
+          sel.appendChild(opt);
+        }
+        const pref = state.configs.find((c) => c.configId === "6");
+        if (pref) sel.value = "6";
+        renderConfigDetails();
+      }
+
+      function renderConfigDetails() {
+        const cfg = state.configs.find((c) => c.configId === el("configSelect").value);
+        const box = el("configDetails");
+        if (!cfg) {
+          box.textContent = "No enabled configs found.";
+          return;
+        }
+        el("trajTarget").textContent = `Target: ${cfg.migrationQuoteThresholdEth} WETH`;
+        box.textContent = `Supply: ${formatNum(cfg.totalSupplyFormatted, 0)} (${cfg.tokenDecimals} dec) • Curve Fee: ${(cfg.cliffFeeBps / 100).toFixed(2)}% • Creation Fee: ${cfg.poolCreationFeeEth} ETH`;
+      }
+
+      // --- TRADE ---
+      function selectedLaunch() {
+        const c = el("tradeCurveSelect").value || state.selectedCurve;
+        return state.launches.find((l) => l.curve === c) || null;
+      }
+
+      async function refreshTradeState() {
+        const launch = selectedLaunch();
+        if (launch) {
+          el("tradeTokLabel").textContent = launch.symbol;
+          el("migrateBtn").style.display = launch.readyToMigrate ? "block" : "none";
+        } else {
+          el("migrateBtn").style.display = "none";
+        }
+        if (!state.address) {
+          el("tradeEthBal").textContent = "--";
+          el("tradeWethBal").textContent = "--";
+          el("tradeTokBal").textContent = "--";
+          return;
+        }
+        const q = launch ? `&token=${encodeURIComponent(launch.token)}` : "";
+        const bal = await apiJson(`/api/launchpad/balances?account=${encodeURIComponent(state.address)}${q}`);
+        state.tradeBalances = bal;
+        el("tradeEthBal").textContent = `${formatNum(bal.eth, 4)} ETH`;
+        el("tradeWethBal").textContent = `${formatNum(bal.weth, 4)} WETH`;
+        el("tradeTokBal").textContent = bal.token ? `${formatNum(bal.token.formatted, 2)} ${bal.token.symbol}` : "--";
+        updateQuotePreview();
+      }
+
+      let quoteTimer = null;
+      function updateQuotePreview() {
+        clearTimeout(quoteTimer);
+        quoteTimer = setTimeout(async () => {
+          const launch = selectedLaunch();
+          const amt = el("tradeAmtInput").value.trim();
+          const box = el("quoteBox");
+          if (!launch || !amt || Number(amt) <= 0) {
+            box.textContent = "Enter a positive amount to quote.";
+            return;
+          }
+          try {
+            const q = await apiJson("/api/launchpad/quote", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ curve: launch.curve, side: state.tradeSide, amount: amt }),
+            });
+            const outSym = state.tradeSide === "buy" ? q.baseSymbol : "WETH";
+            box.textContent = "";
+            const l1 = document.createElement("div");
+            l1.className = "mono";
+            l1.style.fontWeight = "600";
+            l1.textContent = `Receive (est.): ~${formatNum(q.amountOutFormatted, 6)} ${outSym}`;
+            const l2 = document.createElement("div");
+            l2.className = "muted";
+            l2.textContent = `Fee: ${formatNum(q.feeFormatted, 6)} WETH • Fill: ${q.fillKind}`;
+            box.append(l1, l2);
+          } catch (err) {
+            box.textContent = `Quote error: ${err.message}`;
+          }
+        }, 250);
+      }
+
+      function setTradeBanner(msg, kind = "warn", hash = null) {
+        el("tradeStatusCard").style.display = "block";
+        const b = el("tradeBanner");
+        b.className = `status-banner ${kind}`;
+        b.textContent = msg;
+        const links = el("tradeLinks");
+        links.textContent = "";
+        if (isHash(hash)) {
+          const a = document.createElement("a");
+          a.href = `https://sepolia-explorer.giwa.io/tx/${hash}`;
+          a.target = "_blank";
+          a.rel = "noreferrer";
+          a.textContent = `GIWA Explorer: ${hash}`;
+          links.appendChild(a);
+        }
+      }
+
+      async function sendGiwaTx(tx) {
+        await switchChain(GIWA_HEX);
+        return window.ethereum.request({
+          method: "eth_sendTransaction",
+          params: [
+            {
+              from: state.address,
+              to: tx.to,
+              data: tx.data,
+              value: tx.valueHex,
+              ...(tx.gasHex ? { gas: tx.gasHex } : {}),
+            },
+          ],
+        });
+      }
+
+      async function handleWrap(action, amount) {
+        if (state.busy) return;
+        state.busy = true;
+        try {
+          if (!state.address) await connectWallet();
+          const prep = await apiJson("/api/launchpad/wrap-prepare", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action, amountEth: amount }),
+          });
+          setTradeBanner(`Confirm ${action} in MetaMask...`, "warn");
+          const hash = await sendGiwaTx(prep.transaction);
+          setTradeBanner(`Waiting for ${action} confirmation...`, "warn", hash);
+          await waitForL2Receipt(hash);
+          setTradeBanner(`${action === "wrap" ? "Wrapped" : "Unwrapped"} ${amount} ETH!`, "ok", hash);
+          await Promise.all([refreshTradeState(), refreshHeaderBal()]);
+        } catch (err) {
+          setTradeBanner(err.message || "Wrap failed.", "err");
+        } finally {
+          state.busy = false;
+        }
+      }
+
+      async function handleTradeSubmit(e) {
+        e.preventDefault();
+        if (state.busy) return;
+        const launch = selectedLaunch();
+        if (!launch) return;
+        state.busy = true;
+        el("tradeSubmitBtn").disabled = true;
+        try {
+          if (!state.address) await connectWallet();
+          await switchChain(GIWA_HEX);
+          const amount = el("tradeAmtInput").value.trim();
+          const slippageBps = Number(el("slippageSelect").value);
+
+          setTradeBanner("Preparing trade plan...", "warn");
+          let plan = await apiJson("/api/launchpad/trade-prepare", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              curve: launch.curve,
+              side: state.tradeSide,
+              amount,
+              account: state.address,
+              slippageBps,
+            }),
+          });
+
+          if (plan.status === "APPROVAL_REQUIRED") {
+            setTradeBanner("Step 1/2: Approve token spending in MetaMask...", "warn");
+            const appHash = await sendGiwaTx(plan.transaction);
+            setTradeBanner("Step 1/2: Waiting for approval confirmation...", "warn", appHash);
+            await waitForL2Receipt(appHash);
+
+            setTradeBanner("Step 2/2: Re-planning swap...", "warn");
+            plan = await apiJson("/api/launchpad/trade-prepare", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                curve: launch.curve,
+                side: state.tradeSide,
+                amount,
+                account: state.address,
+                slippageBps,
+              }),
+            });
+          }
+
+          setTradeBanner("Confirm swap in MetaMask...", "warn");
+          const swapHash = await sendGiwaTx(plan.transaction);
+          setTradeBanner("Waiting for GIWA Sepolia confirmation...", "warn", swapHash);
+          await waitForL2Receipt(swapHash);
+          setTradeBanner(
+            `Swap confirmed! Received ~${formatNum(plan.quote.expectedOut, 5)} ${plan.quote.outSymbol}`,
+            "ok",
+            swapHash
+          );
+          await Promise.all([refreshTradeState(), loadLaunches(), refreshHeaderBal()]);
+        } catch (err) {
+          setTradeBanner(err.message || "Trade failed.", "err");
+        } finally {
+          state.busy = false;
+          el("tradeSubmitBtn").disabled = false;
+        }
+      }
+
+      async function handleMigrate() {
+        if (state.busy) return;
+        const launch = selectedLaunch();
+        if (!launch) return;
+        state.busy = true;
+        try {
+          if (!state.address) await connectWallet();
+          const prep = await apiJson("/api/launchpad/migrate-prepare", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ curve: launch.curve }),
+          });
+          setTradeBanner("Confirm migration in MetaMask...", "warn");
+          const hash = await sendGiwaTx(prep.transaction);
+          setTradeBanner("Waiting for migration confirmation...", "warn", hash);
+          await waitForL2Receipt(hash);
+          setTradeBanner("Graduated to canonical ARL pool!", "ok", hash);
+          await Promise.all([loadLaunches(), refreshTradeState()]);
+        } catch (err) {
+          setTradeBanner(err.message || "Migration failed.", "err");
+        } finally {
+          state.busy = false;
+        }
+      }
+
+      // --- CREATE LAUNCH ---
+      async function handleCreateSubmit(e) {
+        e.preventDefault();
+        if (state.busy) return;
+        state.busy = true;
+        el("createSubmitBtn").disabled = true;
+        const card = el("createStatusCard");
+        const banner = el("createBanner");
+        const links = el("createLinks");
+        card.style.display = "block";
+        links.textContent = "";
+
+        const setC = (msg, kind) => {
+          banner.className = `status-banner ${kind}`;
+          banner.textContent = msg;
+        };
+
+        try {
+          if (!state.address) await connectWallet();
+          await switchChain(GIWA_HEX);
+          setC("Preparing token & bonding curve launch...", "warn");
+
+          const prep = await apiJson("/api/launchpad/create-prepare", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              account: state.address,
+              configId: el("configSelect").value,
+              name: el("createName").value,
+              symbol: el("createSymbol").value,
+              description: el("createDesc").value,
+              image: el("createImg").value,
+            }),
+          });
+
+          setC("Confirm launch creation in MetaMask...", "warn");
+          const hash = await sendGiwaTx(prep.transaction);
+          setC("Waiting for GIWA Sepolia confirmation...", "warn");
+          await waitForL2Receipt(hash);
+          setC("Token & Bonding Curve launched!", "ok");
+
+          const txA = document.createElement("a");
+          txA.href = `https://sepolia-explorer.giwa.io/tx/${hash}`;
+          txA.target = "_blank";
+          txA.rel = "noreferrer";
+          txA.textContent = `Tx: ${hash}`;
+          const tokInfo = document.createElement("div");
+          tokInfo.className = "mono";
+          tokInfo.textContent = `Token: ${prep.predictedToken} • Curve: ${prep.predictedCurve}`;
+          const openBtn = document.createElement("button");
+          openBtn.type = "button";
+          openBtn.className = "btn btn-blue btn-sm";
+          openBtn.textContent = "Open in Trending Boards & Trade";
+          openBtn.addEventListener("click", async () => {
+            await loadLaunches();
+            openLaunchInBoards(prep.predictedCurve);
+          });
+          links.append(txA, tokInfo, openBtn);
+          await Promise.all([loadLaunches(), refreshHeaderBal()]);
+        } catch (err) {
+          setC(err.message || "Launch creation failed.", "err");
+        } finally {
+          state.busy = false;
+          el("createSubmitBtn").disabled = false;
+        }
+      }
+
+      // --- BRIDGE ---
+      function setBridgeSteps(activeIndex, mode = "active") {
+        [1, 2, 3].forEach((i) => {
+          const n = el(`step${i}`);
+          n.className = "step";
+          if (i < activeIndex) n.classList.add("done");
+          else if (i === activeIndex) n.classList.add(mode);
+        });
+      }
+
+      function setBridgeBanner(msg, kind = "warn") {
+        el("bridgeStatusCard").style.display = "flex";
+        const b = el("bridgeBanner");
+        b.className = `status-banner ${kind}`;
+        b.textContent = msg;
+      }
+
+      function addBridgeLog(msg) {
+        const li = document.createElement("li");
+        li.textContent = msg;
+        el("bridgeLogs").appendChild(li);
+      }
+
+      function renderBridgeLinks(l1Hash, l2Hash) {
+        const box = el("bridgeLinks");
+        box.textContent = "";
+        if (isHash(l1Hash)) {
+          const a = document.createElement("a");
+          a.href = `https://sepolia.etherscan.io/tx/${l1Hash}`;
+          a.target = "_blank";
+          a.rel = "noreferrer";
+          a.textContent = `Sepolia L1 Tx: ${l1Hash}`;
+          box.appendChild(a);
+        }
+        if (isHash(l2Hash)) {
+          const a = document.createElement("a");
+          a.href = `https://sepolia-explorer.giwa.io/tx/${l2Hash}`;
+          a.target = "_blank";
+          a.rel = "noreferrer";
+          a.textContent = `GIWA L2 Tx: ${l2Hash}`;
+          box.appendChild(a);
+        }
+      }
+
+      function loadHistory() {
+        try {
+          const parsed = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+          return Array.isArray(parsed) ? parsed : [];
+        } catch {
+          return [];
+        }
+      }
+
+      function saveHistory(entry) {
+        const items = loadHistory().filter((x) => x.l1Hash !== entry.l1Hash);
+        items.unshift(entry);
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(items.slice(0, 8)));
+        renderHistory();
+      }
+
+      function renderHistory() {
+        const items = loadHistory();
+        const tbody = el("historyBody");
+        tbody.textContent = "";
+        if (!items.length) {
+          const tr = document.createElement("tr");
+          const td = document.createElement("td");
+          td.colSpan = 5;
+          td.className = "muted";
+          td.textContent = "No recent bridge transactions in this browser yet.";
+          tr.appendChild(td);
+          tbody.appendChild(tr);
+          return;
+        }
+        for (const item of items) {
+          const tr = document.createElement("tr");
+          const td1 = document.createElement("td");
+          td1.className = "mono";
+          td1.textContent = shortAddr(item.l1Hash);
+          const td2 = document.createElement("td");
+          td2.textContent = "Sepolia → GIWA Sepolia";
+          const td3 = document.createElement("td");
+          td3.className = "mono";
+          td3.textContent = `${item.amountEth} ETH`;
+          const td4 = document.createElement("td");
+          const badge = document.createElement("span");
+          badge.className = `tag ${item.status === "confirmed" ? "ok" : item.status === "failed" ? "" : "warn"}`;
+          badge.textContent = item.status;
+          td4.appendChild(badge);
+          const td5 = document.createElement("td");
+          if (isHash(item.l1Hash)) {
+            const a = document.createElement("a");
+            a.href = `https://sepolia.etherscan.io/tx/${item.l1Hash}`;
+            a.target = "_blank";
+            a.rel = "noreferrer";
+            a.textContent = "Etherscan";
+            td5.appendChild(a);
+          }
+          if (isHash(item.l2Hash)) {
+            td5.appendChild(document.createTextNode(" • "));
+            const a2 = document.createElement("a");
+            a2.href = `https://sepolia-explorer.giwa.io/tx/${item.l2Hash}`;
+            a2.target = "_blank";
+            a2.rel = "noreferrer";
+            a2.textContent = "GIWA";
+            td5.appendChild(a2);
+          }
+          tr.append(td1, td2, td3, td4, td5);
+          tbody.appendChild(tr);
+        }
+      }
+
+      async function refreshBridgeBalances() {
+        if (!state.address) {
+          el("l1Bal").textContent = "Bal: -- ETH";
+          el("l2Bal").textContent = "Bal: -- ETH";
+          return;
+        }
+        const bal = await apiJson(`/api/balances?address=${encodeURIComponent(state.address)}`);
+        state.l1EthRaw = bal.l1Eth;
+        el("l1Bal").textContent = `Bal: ${formatNum(bal.l1Eth, 5)} ETH`;
+        el("l2Bal").textContent = `Bal: ${formatNum(bal.l2Eth, 5)} ETH`;
+      }
+
+      async function handleBridgeSubmit(e) {
+        e.preventDefault();
+        if (state.busy) return;
+        state.busy = true;
+        el("bridgeBtn").disabled = true;
+        el("bridgeLogs").textContent = "";
+        el("bridgeLinks").textContent = "";
+
+        try {
+          if (!state.address) await connectWallet();
+          window.__morrales3d?.setBridgeActive(true, "Relaying Sepolia → GIWA...");
+          setBridgeSteps(1, "active");
+          await switchChain(SEPOLIA_HEX);
+
+          const amountEth = el("amountInput").value.trim();
+          const recipient = el("recipientInput").value.trim();
+          addBridgeLog("Preparing L1 deposit with safe gas limit...");
+          const prep = await apiJson("/api/prepare", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ from: state.address, to: recipient || undefined, amountEth }),
+          });
+          addBridgeLog(`Safe L1 gas limit: ${prep.l1GasLimit} (estimated ${prep.estimatedL1Gas}).`);
+
+          setBridgeBanner("Confirm bridge transaction in MetaMask...", "warn");
+          const l1Hash = await window.ethereum.request({
+            method: "eth_sendTransaction",
+            params: [{ from: state.address, to: prep.to, data: prep.data, value: prep.valueHex, gas: prep.gasHex }],
+          });
+
+          saveHistory({ amountEth, l1Hash, status: "pending" });
+          renderBridgeLinks(l1Hash, null);
+          setBridgeSteps(2, "active");
+          setBridgeBanner("Waiting for Ethereum Sepolia confirmation...", "warn");
+
+          let prevStatus = "";
+          while (true) {
+            const st = await apiJson(`/api/status?l1Hash=${encodeURIComponent(l1Hash)}`);
+            if (st.status !== prevStatus) {
+              prevStatus = st.status;
+              if (st.status === "pending_l2") {
+                setBridgeSteps(3, "active");
+                renderBridgeLinks(l1Hash, st.l2Hash);
+                addBridgeLog(`L1 confirmed (block ${st.l1Block}). Waiting for GIWA L2 mint...`);
+                setBridgeBanner("L1 confirmed! Waiting for GIWA Sepolia L2...", "warn");
+              }
+            }
+            if (st.status === "reverted_l1") {
+              setBridgeSteps(2, "err");
+              saveHistory({ amountEth, l1Hash, status: "failed" });
+              throw new Error(`L1 tx reverted (${l1Hash})`);
+            }
+            if (st.status === "reverted_l2") {
+              setBridgeSteps(3, "err");
+              saveHistory({ amountEth, l1Hash, l2Hash: st.l2Hash, status: "failed" });
+              throw new Error(`L2 tx reverted (${st.l2Hash})`);
+            }
+            if (st.status === "confirmed") {
+              setBridgeSteps(4, "done");
+              saveHistory({ amountEth, l1Hash, l2Hash: st.l2Hash, status: "confirmed" });
+              renderBridgeLinks(l1Hash, st.l2Hash);
+              addBridgeLog(`GIWA L2 confirmed in block ${st.l2Block}.`);
+              setBridgeBanner(`Bridged ${amountEth} ETH to GIWA Sepolia!`, "ok");
+              await Promise.all([refreshBridgeBalances(), refreshHeaderBal()]);
+              return;
+            }
+            await new Promise((r) => setTimeout(r, 3000));
+          }
+        } catch (err) {
+          setBridgeBanner(err.message || "Bridge failed.", "err");
+          addBridgeLog(`Error: ${err.message || err}`);
+        } finally {
+          window.__morrales3d?.setBridgeActive(false, "Relay Idle");
+          state.busy = false;
+          el("bridgeBtn").disabled = false;
+        }
+      }
+
+      // --- EVENTS ---
+      document.querySelectorAll(".nav-tab[data-view]").forEach((btn) => {
+        btn.addEventListener("click", () => switchView(btn.dataset.view));
+      });
+      el("popBridgeBtn").addEventListener("click", () => {
+        el("walletPopover").classList.remove("open");
+        switchView("bridge");
+      });
+      el("netPillBtn").addEventListener("click", async () => {
+        if (!state.address) {
+          connectWallet().catch((e) => alert(e.message));
+          return;
+        }
+        const target = state.chainId?.toLowerCase() === GIWA_HEX ? SEPOLIA_HEX : GIWA_HEX;
+        switchChain(target).catch((e) => alert(e.message));
+      });
+      el("walletPillBtn").addEventListener("click", (e) => {
+        e.stopPropagation();
+        const open = el("walletPopover").classList.toggle("open");
+        el("walletPillBtn").setAttribute("aria-expanded", String(open));
+        if (open) refreshHeaderBal();
+      });
+      document.addEventListener("click", (e) => {
+        if (!el("walletPopover").contains(e.target) && !el("walletPillBtn").contains(e.target)) {
+          el("walletPopover").classList.remove("open");
+          el("walletPillBtn").setAttribute("aria-expanded", "false");
+        }
+      });
+      el("copyAddrBtn").addEventListener("click", async () => {
+        if (!state.address || !navigator.clipboard) return;
+        await navigator.clipboard.writeText(state.address);
+        el("copyAddrBtn").textContent = "Copied!";
+        setTimeout(() => {
+          el("copyAddrBtn").textContent = "Copy Address";
+        }, 1000);
+      });
+      el("focusDeployBtn").addEventListener("click", () => {
+        el("deployCard").scrollIntoView({ behavior: "smooth" });
+        el("createName").focus();
+      });
+
+      el("globalSearch").addEventListener("input", (e) => {
+        state.search = e.target.value;
+        renderActiveCurvesGrid();
+        renderBoardsList();
+      });
+
+      document.querySelectorAll(".filter-tab").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".filter-tab").forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          state.filter = btn.dataset.filter;
+          renderActiveCurvesGrid();
+          renderBoardsList();
+        });
+      });
+
+      document.querySelectorAll(".board-mode").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".board-mode").forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          state.boardMode = btn.dataset.bmode;
+          el("boardsCardsView").style.display = state.boardMode === "cards" ? "grid" : "none";
+          el("boardsTableView").style.display = state.boardMode === "table" ? "block" : "none";
+        });
+      });
+
+      el("sortSelect").addEventListener("change", (e) => {
+        state.sort = e.target.value;
+        renderActiveCurvesGrid();
+        renderBoardsList();
+      });
+      el("lookbackSelect").addEventListener("change", loadLaunches);
+      el("refreshAllBtn").addEventListener("click", () => Promise.allSettled([loadLaunches(), loadConfigs(), refreshHeaderBal()]));
+
+      el("configSelect").addEventListener("change", renderConfigDetails);
+      el("createForm").addEventListener("submit", handleCreateSubmit);
+
+      el("tradeCurveSelect").addEventListener("change", (e) => {
+        state.selectedCurve = e.target.value;
+        renderBoardFeatured();
+        refreshTradeState();
+      });
+      el("sideBuyBtn").addEventListener("click", () => {
+        state.tradeSide = "buy";
+        el("sideBuyBtn").classList.add("active");
+        el("sideSellBtn").classList.remove("active");
+        el("tradeAmtLabel").textContent = "You Pay (WETH)";
+        updateQuotePreview();
+      });
+      el("sideSellBtn").addEventListener("click", () => {
+        state.tradeSide = "sell";
+        el("sideSellBtn").classList.add("active");
+        el("sideBuyBtn").classList.remove("active");
+        const l = selectedLaunch();
+        el("tradeAmtLabel").textContent = `You Sell (${l?.symbol || "Token"})`;
+        updateQuotePreview();
+      });
+      el("tradeAmtInput").addEventListener("input", updateQuotePreview);
+      document.querySelectorAll(".trade-preset").forEach((b) => {
+        b.addEventListener("click", () => {
+          el("tradeAmtInput").value = b.dataset.amt;
+          updateQuotePreview();
+        });
+      });
+      el("tradeMaxBtn").addEventListener("click", () => {
+        if (!state.tradeBalances) return;
+        el("tradeAmtInput").value =
+          state.tradeSide === "buy" ? state.tradeBalances.weth : state.tradeBalances.token?.formatted || "0";
+        updateQuotePreview();
+      });
+      el("wrapBtn").addEventListener("click", () => handleWrap("wrap", el("wrapAmtInput").value.trim()));
+      el("unwrapBtn").addEventListener("click", () => handleWrap("unwrap", el("wrapAmtInput").value.trim()));
+      el("addonWrapBtn").addEventListener("click", () => {
+        switchView("boards");
+        handleWrap("wrap", el("addonWrapAmt").value.trim());
+      });
+      el("addonUnwrapBtn").addEventListener("click", () => {
+        switchView("boards");
+        handleWrap("unwrap", el("addonWrapAmt").value.trim());
+      });
+      el("tradeForm").addEventListener("submit", handleTradeSubmit);
+      el("migrateBtn").addEventListener("click", handleMigrate);
+
+      el("connectBtn").addEventListener("click", () => connectWallet().catch((e) => alert(e.message)));
+      el("addGiwaTopBtn").addEventListener("click", () => addGiwaNetwork().catch((e) => alert(e.message)));
+      el("addonGiwaBtn").addEventListener("click", () => addGiwaNetwork().catch((e) => alert(e.message)));
+      el("switchGiwaTradeBtn").addEventListener("click", () => switchChain(GIWA_HEX).catch((e) => alert(e.message)));
+      el("switchGiwaCreateBtn").addEventListener("click", () => switchChain(GIWA_HEX).catch((e) => alert(e.message)));
+      el("switchSepoliaBtn").addEventListener("click", () => switchChain(SEPOLIA_HEX).catch((e) => alert(e.message)));
+
+      document.querySelectorAll(".bridge-preset").forEach((b) => {
+        b.addEventListener("click", () => {
+          el("amountInput").value = b.dataset.amt;
+        });
+      });
+      el("maxBtn").addEventListener("click", () => {
+        if (!state.l1EthRaw) return;
+        const maxSend = Math.max(0, Number(state.l1EthRaw) - 0.002);
+        el("amountInput").value = maxSend > 0 ? maxSend.toFixed(6).replace(/\.?0+$/, "") : "0";
+      });
+      el("bridgeForm").addEventListener("submit", handleBridgeSubmit);
+      el("clearHistoryBtn").addEventListener("click", () => {
+        localStorage.removeItem(HISTORY_KEY);
+        renderHistory();
+      });
+
+      function renderInfoBoxes(info) {
+        el("portalShort").textContent = shortAddr(info.portalAddress);
+        const box = el("contractLinksBox");
+        box.textContent = "";
+        const entries = [
+          ["Sepolia Portal", `${info.l1.explorerUrl}/address/${info.portalAddress}`],
+          ["Ammora LaunchFactory", `${info.l2.explorerUrl}/address/${info.launchpad.factory}`],
+          ["Ammora ConfigRegistry", `${info.l2.explorerUrl}/address/${info.launchpad.configRegistry}`],
+          ["GIWA WETH9", `${info.l2.explorerUrl}/token/${info.launchpad.weth}`],
+        ];
+        for (const [label, href] of entries) {
+          const row = document.createElement("div");
+          row.className = "row card-subtle";
+          const s = document.createElement("span");
+          s.className = "muted";
+          s.textContent = label;
+          const a = document.createElement("a");
+          a.href = href;
+          a.target = "_blank";
+          a.rel = "noreferrer";
+          a.className = "mono";
+          a.textContent = "Explorer ↗";
+          row.append(s, a);
+          box.appendChild(row);
+        }
+
+        const fillFooterLinks = (targetId, items) => {
+          const container = el(targetId);
+          if (!container) return;
+          container.textContent = "";
+          for (const [label, addr, href] of items) {
+            const a = document.createElement("a");
+            a.href = href;
+            a.target = "_blank";
+            a.rel = "noreferrer";
+            a.textContent = `${label} (${shortAddr(addr)}) ↗`;
+            container.appendChild(a);
+          }
+        };
+
+        fillFooterLinks("footerGiwaContracts", [
+          ["OptimismPortalProxy", info.portalAddress, `${info.l1.explorerUrl}/address/${info.portalAddress}`],
+          ["GIWA WETH9", info.launchpad.weth, `${info.l2.explorerUrl}/token/${info.launchpad.weth}`],
+        ]);
+        fillFooterLinks("footerAmmoraContracts", [
+          ["LaunchFactory", info.launchpad.factory, `${info.l2.explorerUrl}/address/${info.launchpad.factory}`],
+          ["ConfigRegistry", info.launchpad.configRegistry, `${info.l2.explorerUrl}/address/${info.launchpad.configRegistry}`],
+        ]);
+      }
+
+      async function boot() {
+        renderHistory();
+        if (window.ethereum) {
+          window.ethereum.on?.("accountsChanged", (accs) => {
+            state.address = accs[0] || null;
+            updateWalletUI();
+            refreshHeaderBal();
+            refreshTradeState();
+            refreshBridgeBalances();
+          });
+          window.ethereum.on?.("chainChanged", (cid) => {
+            state.chainId = cid;
+            updateWalletUI();
+          });
+          try {
+            const [accs, cid] = await Promise.all([
+              window.ethereum.request({ method: "eth_accounts" }),
+              window.ethereum.request({ method: "eth_chainId" }),
+            ]);
+            if (accs?.length) state.address = accs[0];
+            state.chainId = cid || null;
+          } catch {}
+        }
+        updateWalletUI();
+        refreshHeaderBal();
+        await Promise.allSettled([
+          loadLaunches(),
+          loadConfigs(),
+          apiJson("/api/info").then((i) => {
+            state.info = i;
+            renderInfoBoxes(i);
+          }),
+        ]);
+      }
+
+      window.addEventListener("morrales3d:ready", () => {
+        if (state.launches.length) renderBoardFeatured();
+      });
+
+      boot();
+    </script>
+
+    <script type="module">
+      async function initThreeScenes() {
+        let THREE;
+        try {
+          THREE = await import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js");
+        } catch {
+          return;
+        }
+
+        const mouse = { x: 0, y: 0 };
+        window.addEventListener("pointermove", (e) => {
+          mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+          mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+        });
+
+        // 1. Subtle Ambient Background Topological Wave
+        const bgCanvas = document.getElementById("threeBgCanvas");
+        let bgRenderer, bgScene, bgCamera, bgPlane, bgOrigY;
+        if (bgCanvas) {
+          try {
+            bgRenderer = new THREE.WebGLRenderer({ canvas: bgCanvas, alpha: true, antialias: true });
+            bgRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+            bgScene = new THREE.Scene();
+            bgCamera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.1, 100);
+            bgCamera.position.set(0, 6.5, 13);
+            bgCamera.lookAt(0, 0, 0);
+
+            const geo = new THREE.PlaneGeometry(34, 20, 44, 26);
+            geo.rotateX(-Math.PI / 2.25);
+            bgOrigY = Float32Array.from(geo.attributes.position.array);
+            const mat = new THREE.MeshBasicMaterial({
+              color: 0x3b82f6,
+              wireframe: true,
+              transparent: true,
+              opacity: 0.11,
+            });
+            bgPlane = new THREE.Mesh(geo, mat);
+            bgPlane.position.y = -2.2;
+            bgScene.add(bgPlane);
+
+            const resizeBg = () => {
+              bgCamera.aspect = window.innerWidth / window.innerHeight;
+              bgCamera.updateProjectionMatrix();
+              bgRenderer.setSize(window.innerWidth, window.innerHeight, false);
+            };
+            resizeBg();
+            window.addEventListener("resize", resizeBg);
+          } catch {}
+        }
+
+        // 2. Hero Rotating 3D Morrales Coin
+        const heroCanvas = document.getElementById("hero3dCanvas");
+        let heroRenderer, heroScene, heroCamera, heroGroup;
+        let heroHovered = false;
+        let heroSpinBoost = 0;
+        if (heroCanvas) {
+          try {
+            heroRenderer = new THREE.WebGLRenderer({ canvas: heroCanvas, alpha: true, antialias: true });
+            heroRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            heroRenderer.setSize(108, 108, false);
+            heroRenderer.outputColorSpace = THREE.SRGBColorSpace;
+
+            heroScene = new THREE.Scene();
+            heroCamera = new THREE.PerspectiveCamera(36, 1, 0.1, 50);
+            heroCamera.position.set(0, 0.15, 4.35);
+
+            const ambLight = new THREE.AmbientLight(0xffffff, 1.45);
+            const keyLight = new THREE.DirectionalLight(0xffffff, 2.3);
+            keyLight.position.set(3.2, 4.0, 5.0);
+            const fillLight = new THREE.DirectionalLight(0x60a5fa, 1.35);
+            fillLight.position.set(-4.0, -2.0, 3.0);
+            const rimLight = new THREE.DirectionalLight(0x93c5fd, 1.2);
+            rimLight.position.set(0, 3.0, -4.5);
+            heroScene.add(ambLight, keyLight, fillLight, rimLight);
+
+            // Procedural 512x512 Morrales coin face texture
+            const faceCanvas = document.createElement("canvas");
+            faceCanvas.width = 512;
+            faceCanvas.height = 512;
+            const ctx = faceCanvas.getContext("2d");
+
+            const bgGrad = ctx.createRadialGradient(180, 150, 24, 256, 256, 256);
+            bgGrad.addColorStop(0, "#60A5FA");
+            bgGrad.addColorStop(0.55, "#2563EB");
+            bgGrad.addColorStop(1, "#1E40AF");
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, 512, 512);
+
+            // Inner concentric minted rings
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.32)";
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.arc(256, 256, 224, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.strokeStyle = "rgba(191, 219, 254, 0.35)";
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.arc(256, 256, 198, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Perimeter minted tick marks
+            ctx.save();
+            ctx.translate(256, 256);
+            ctx.strokeStyle = "rgba(239, 246, 255, 0.42)";
+            ctx.lineWidth = 3;
+            for (let i = 0; i < 48; i++) {
+              ctx.rotate((Math.PI * 2) / 48);
+              ctx.beginPath();
+              ctx.moveTo(0, -214);
+              ctx.lineTo(0, i % 4 === 0 ? -201 : -207);
+              ctx.stroke();
+            }
+            ctx.restore();
+
+            // Dashed bonding curve arc
+            ctx.save();
+            ctx.strokeStyle = "rgba(191, 219, 254, 0.55)";
+            ctx.lineWidth = 10;
+            ctx.lineCap = "round";
+            ctx.setLineDash([14, 14]);
+            ctx.beginPath();
+            ctx.moveTo(132, 344);
+            ctx.bezierCurveTo(212, 338, 286, 274, 372, 166);
+            ctx.stroke();
+            ctx.restore();
+
+            // Signature Morrales 'M' trajectory crest
+            ctx.strokeStyle = "#FFFFFF";
+            ctx.lineWidth = 30;
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+            ctx.beginPath();
+            ctx.moveTo(148, 344);
+            ctx.lineTo(148, 194);
+            ctx.lineTo(250, 278);
+            ctx.lineTo(372, 166);
+            ctx.lineTo(372, 344);
+            ctx.stroke();
+
+            // Apex node + outer glow ring
+            ctx.strokeStyle = "rgba(186, 230, 253, 0.65)";
+            ctx.lineWidth = 8;
+            ctx.beginPath();
+            ctx.arc(372, 166, 36, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.fillStyle = "#FFFFFF";
+            ctx.beginPath();
+            ctx.arc(372, 166, 22, 0, Math.PI * 2);
+            ctx.fill();
+
+            const faceTex = new THREE.CanvasTexture(faceCanvas);
+            faceTex.colorSpace = THREE.SRGBColorSpace;
+            faceTex.anisotropy = 4;
+
+            heroGroup = new THREE.Group();
+            const coinBody = new THREE.Group();
+
+            // Coin core & milled edge
+            const rimMat = new THREE.MeshStandardMaterial({
+              color: 0x93c5fd,
+              metalness: 0.82,
+              roughness: 0.24,
+            });
+            const coreCyl = new THREE.Mesh(new THREE.CylinderGeometry(1.06, 1.06, 0.17, 64, 1), rimMat);
+            coreCyl.rotation.x = Math.PI / 2;
+            coinBody.add(coreCyl);
+
+            // 40 reeded grooves around the coin rim
+            const reedGeo = new THREE.BoxGeometry(0.03, 0.03, 0.185);
+            const reedMat = new THREE.MeshStandardMaterial({
+              color: 0xdbeafe,
+              metalness: 0.88,
+              roughness: 0.2,
+            });
+            for (let i = 0; i < 40; i++) {
+              const ang = (i / 40) * Math.PI * 2;
+              const reed = new THREE.Mesh(reedGeo, reedMat);
+              reed.position.set(Math.cos(ang) * 1.065, Math.sin(ang) * 1.065, 0);
+              reed.rotation.z = ang;
+              coinBody.add(reed);
+            }
+
+            // Chamfered silver-blue front & back bezels
+            const bezelGeo = new THREE.TorusGeometry(1.02, 0.058, 18, 64);
+            const bezelMat = new THREE.MeshStandardMaterial({
+              color: 0xeff6ff,
+              metalness: 0.86,
+              roughness: 0.18,
+            });
+            const frontBezel = new THREE.Mesh(bezelGeo, bezelMat);
+            frontBezel.position.z = 0.072;
+            const backBezel = new THREE.Mesh(bezelGeo, bezelMat);
+            backBezel.position.z = -0.072;
+            coinBody.add(frontBezel, backBezel);
+
+            // Front & back Morrales coin faces
+            const faceGeo = new THREE.CircleGeometry(0.99, 64);
+            const faceMat = new THREE.MeshStandardMaterial({
+              map: faceTex,
+              metalness: 0.28,
+              roughness: 0.26,
+            });
+            const frontFace = new THREE.Mesh(faceGeo, faceMat);
+            frontFace.position.z = 0.09;
+            const backFace = new THREE.Mesh(faceGeo, faceMat);
+            backFace.position.z = -0.09;
+            backFace.rotation.y = Math.PI;
+            coinBody.add(frontFace, backFace);
+
+            coinBody.rotation.z = 0.1;
+            heroGroup.add(coinBody);
+            heroScene.add(heroGroup);
+
+            heroCanvas.addEventListener("pointerenter", () => (heroHovered = true));
+            heroCanvas.addEventListener("pointerleave", () => (heroHovered = false));
+            heroCanvas.addEventListener("click", () => {
+              heroSpinBoost = 0.24;
+            });
+          } catch {}
+        }
+
+        // 3. Bridge Cross-Chain Portal Stream
+        const bridgeCanvas = document.getElementById("bridge3dCanvas");
+        let bridgeRenderer, bridgeScene, bridgeCamera, bridgeParticles, bridgeT, bridgeSpeed = 0.0045;
+        let l1Ring, l2Ring;
+        if (bridgeCanvas) {
+          try {
+            bridgeRenderer = new THREE.WebGLRenderer({ canvas: bridgeCanvas, alpha: true, antialias: true });
+            bridgeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            bridgeScene = new THREE.Scene();
+            bridgeCamera = new THREE.PerspectiveCamera(42, 6, 0.1, 50);
+            bridgeCamera.position.set(0, 0.4, 6.2);
+
+            l1Ring = new THREE.Mesh(
+              new THREE.TorusGeometry(0.95, 0.06, 16, 48),
+              new THREE.MeshBasicMaterial({ color: 0x2563eb })
+            );
+            l1Ring.position.set(-2.9, 0, 0);
+            l1Ring.rotation.y = 0.45;
+
+            l2Ring = new THREE.Mesh(
+              new THREE.TorusGeometry(0.95, 0.06, 16, 48),
+              new THREE.MeshBasicMaterial({ color: 0x059669 })
+            );
+            l2Ring.position.set(2.9, 0, 0);
+            l2Ring.rotation.y = -0.45;
+
+            const arcCurve = new THREE.QuadraticBezierCurve3(
+              new THREE.Vector3(-2.9, 0, 0),
+              new THREE.Vector3(0, 1.35, 0.4),
+              new THREE.Vector3(2.9, 0, 0)
+            );
+            const arcTube = new THREE.Mesh(
+              new THREE.TubeGeometry(arcCurve, 40, 0.02, 8, false),
+              new THREE.MeshBasicMaterial({ color: 0x93c5fd, transparent: true, opacity: 0.55 })
+            );
+
+            const count = 28;
+            bridgeT = new Float32Array(count);
+            const pos = new Float32Array(count * 3);
+            for (let i = 0; i < count; i++) bridgeT[i] = i / count;
+            const pGeo = new THREE.BufferGeometry();
+            pGeo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+            bridgeParticles = new THREE.Points(
+              pGeo,
+              new THREE.PointsMaterial({ color: 0x2563eb, size: 0.16, transparent: true, opacity: 0.9 })
+            );
+            bridgeParticles.userData.curve = arcCurve;
+
+            bridgeScene.add(l1Ring, l2Ring, arcTube, bridgeParticles);
+
+            const resizeBridge = () => {
+              const rect = bridgeCanvas.parentElement?.getBoundingClientRect();
+              if (!rect || rect.width === 0) return;
+              bridgeCamera.aspect = rect.width / rect.height;
+              bridgeCamera.updateProjectionMatrix();
+              bridgeRenderer.setSize(rect.width, rect.height, false);
+            };
+            new ResizeObserver(resizeBridge).observe(bridgeCanvas.parentElement);
+            window.addEventListener("resize", resizeBridge);
+            resizeBridge();
+          } catch {}
+        }
+
+        // 4. Interactive 3D Bonding Curve Stage (Trending Boards)
+        let boardState = null;
+        function mountBoard(canvasEl, launch) {
+          if (!canvasEl) return;
+          if (boardState?.renderer) {
+            boardState.renderer.dispose();
+          }
+          try {
+            const renderer = new THREE.WebGLRenderer({ canvas: canvasEl, alpha: true, antialias: true });
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(42, 2.4, 0.1, 60);
+            camera.position.set(0, 1.4, 6.2);
+            camera.lookAt(0, 0.2, 0);
+
+            const root = new THREE.Group();
+            const grid = new THREE.GridHelper(9, 14, 0xcbd5e1, 0xe2e8f0);
+            grid.position.y = -1.2;
+            root.add(grid);
+
+            const pts = [];
+            for (let i = 0; i <= 24; i++) {
+              const t = i / 24;
+              const x = -3.4 + t * 6.8;
+              const y = -1.0 + Math.pow(t, 1.85) * 2.55;
+              const z = Math.sin(t * Math.PI) * 0.45;
+              pts.push(new THREE.Vector3(x, y, z));
+            }
+            const curve = new THREE.CatmullRomCurve3(pts);
+
+            const tube = new THREE.Mesh(
+              new THREE.TubeGeometry(curve, 52, 0.075, 14, false),
+              new THREE.MeshBasicMaterial({ color: 0x2563eb })
+            );
+            root.add(tube);
+
+            const targetGoal = new THREE.Mesh(
+              new THREE.SphereGeometry(0.19, 24, 24),
+              new THREE.MeshBasicMaterial({ color: 0x059669 })
+            );
+            targetGoal.position.copy(curve.getPoint(1));
+            root.add(targetGoal);
+
+            const progT = Math.min(1, Math.max(0.02, (launch?.progressPct || 0) / 100));
+            const curPt = curve.getPoint(progT);
+            const marker = new THREE.Mesh(
+              new THREE.SphereGeometry(0.21, 24, 24),
+              new THREE.MeshBasicMaterial({ color: 0x1d4ed8 })
+            );
+            marker.position.copy(curPt);
+            const halo = new THREE.Mesh(
+              new THREE.TorusGeometry(0.36, 0.028, 12, 36),
+              new THREE.MeshBasicMaterial({ color: 0x60a5fa })
+            );
+            halo.position.copy(curPt);
+            root.add(marker, halo);
+
+            // Orbiting liquidity dust
+            const dustCount = 42;
+            const dustPos = new Float32Array(dustCount * 3);
+            for (let i = 0; i < dustCount; i++) {
+              const p = curve.getPoint(Math.random());
+              dustPos[i * 3] = p.x + (Math.random() - 0.5) * 0.7;
+              dustPos[i * 3 + 1] = p.y + (Math.random() - 0.5) * 0.7;
+              dustPos[i * 3 + 2] = p.z + (Math.random() - 0.5) * 0.7;
+            }
+            const dustGeo = new THREE.BufferGeometry();
+            dustGeo.setAttribute("position", new THREE.BufferAttribute(dustPos, 3));
+            const dust = new THREE.Points(
+              dustGeo,
+              new THREE.PointsMaterial({ color: 0x3b82f6, size: 0.08, transparent: true, opacity: 0.55 })
+            );
+            root.add(dust);
+            scene.add(root);
+
+            let dragging = false;
+            let lastX = 0;
+            let lastY = 0;
+            let rotY = -0.18;
+            let rotX = 0.08;
+            canvasEl.addEventListener("pointerdown", (e) => {
+              dragging = true;
+              lastX = e.clientX;
+              lastY = e.clientY;
+            });
+            window.addEventListener("pointerup", () => (dragging = false));
+            window.addEventListener("pointermove", (e) => {
+              if (!dragging) return;
+              rotY += (e.clientX - lastX) * 0.008;
+              rotX = Math.max(-0.5, Math.min(0.6, rotX + (e.clientY - lastY) * 0.006));
+              lastX = e.clientX;
+              lastY = e.clientY;
+            });
+
+            const resizeBoard = () => {
+              const rect = canvasEl.parentElement?.getBoundingClientRect();
+              if (!rect || rect.width === 0) return;
+              camera.aspect = rect.width / rect.height;
+              camera.updateProjectionMatrix();
+              renderer.setSize(rect.width, rect.height, false);
+            };
+            new ResizeObserver(resizeBoard).observe(canvasEl.parentElement);
+            window.addEventListener("resize", resizeBoard);
+            resizeBoard();
+
+            boardState = {
+              renderer,
+              scene,
+              camera,
+              root,
+              halo,
+              marker,
+              getRot: () => ({ rotX, rotY, dragging }),
+            };
+          } catch {}
+        }
+
+        window.__morrales3d = {
+          mountBoard,
+          setBridgeActive(active, label) {
+            bridgeSpeed = active ? 0.018 : 0.0045;
+            const st = document.getElementById("bridge3dStatus");
+            if (st && label) st.textContent = label;
+          },
+        };
+
+        window.dispatchEvent(new Event("morrales3d:ready"));
+
+        let t = 0;
+        function animate() {
+          requestAnimationFrame(animate);
+          if (document.hidden) return;
+          t += 0.016;
+
+          if (bgRenderer && bgPlane) {
+            const pos = bgPlane.geometry.attributes.position;
+            for (let i = 0; i < pos.count; i++) {
+              const x = bgOrigY[i * 3];
+              const z = bgOrigY[i * 3 + 2];
+              pos.setY(i, Math.sin(x * 0.32 + t * 0.9) * 0.35 + Math.cos(z * 0.38 + t * 0.7) * 0.25);
+            }
+            pos.needsUpdate = true;
+            bgCamera.position.x += (mouse.x * 0.9 - bgCamera.position.x) * 0.04;
+            bgCamera.lookAt(0, -1, 0);
+            bgRenderer.render(bgScene, bgCamera);
+          }
+
+          if (heroRenderer && heroGroup && heroCanvas.offsetParent !== null) {
+            const baseSpin = heroHovered ? 0.042 : 0.022;
+            heroGroup.rotation.y += baseSpin + heroSpinBoost;
+            heroSpinBoost *= 0.93;
+            if (heroSpinBoost < 0.0005) heroSpinBoost = 0;
+            heroGroup.rotation.x = Math.sin(t * 1.1) * 0.14 + mouse.y * 0.18;
+            heroGroup.position.y = Math.sin(t * 2.2) * 0.045;
+            heroRenderer.render(heroScene, heroCamera);
+          }
+
+          if (bridgeRenderer && bridgeParticles && bridgeCanvas.offsetParent !== null) {
+            l1Ring.rotation.z += 0.015;
+            l2Ring.rotation.z -= 0.015;
+            const pos = bridgeParticles.geometry.attributes.position;
+            const curve = bridgeParticles.userData.curve;
+            for (let i = 0; i < bridgeT.length; i++) {
+              bridgeT[i] = (bridgeT[i] + bridgeSpeed) % 1;
+              const p = curve.getPoint(bridgeT[i]);
+              pos.setXYZ(i, p.x, p.y, p.z);
+            }
+            pos.needsUpdate = true;
+            bridgeRenderer.render(bridgeScene, bridgeCamera);
+          }
+
+          if (boardState?.renderer && boardState.renderer.domElement.offsetParent !== null) {
+            const { rotX, rotY, dragging } = boardState.getRot();
+            boardState.root.rotation.y = rotY + (dragging ? 0 : Math.sin(t * 0.5) * 0.12);
+            boardState.root.rotation.x = rotX;
+            boardState.halo.rotation.x += 0.03;
+            boardState.halo.rotation.y += 0.025;
+            const s = 1 + Math.sin(t * 3.2) * 0.12;
+            boardState.marker.scale.set(s, s, s);
+            boardState.renderer.render(boardState.scene, boardState.camera);
+          }
+        }
+        animate();
+      }
+
+      initThreeScenes();
+    </script>
+  </body>
+</html>

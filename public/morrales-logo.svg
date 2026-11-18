@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none">
+  <defs>
+    <linearGradient id="morrales-bg" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3B82F6" />
+      <stop offset="55%" stop-color="#2563EB" />
+      <stop offset="100%" stop-color="#1D4ED8" />
+    </linearGradient>
+    <linearGradient id="morrales-arc" x1="16" y1="44" x2="50" y2="18" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#DBEAFE" />
+      <stop offset="100%" stop-color="#FFFFFF" />
+    </linearGradient>
+  </defs>
+
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#morrales-bg)" />
+  <rect x="3" y="3" width="58" height="58" rx="15" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="1.5" />
+
+  <!-- Subtle bonding-curve grid arc -->
+  <path d="M14 45 C26 44, 36 35, 48 19" stroke="#93C5FD" stroke-opacity="0.45" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 3" />
+
+  <!-- Morrales M + Ascending Launch Vector -->
+  <path
+    d="M16 45 V23 L30 35 L48 19 V45"
+    stroke="url(#morrales-arc)"
+    stroke-width="4.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Graduation / L2 Node -->
+  <circle cx="48" cy="19" r="4" fill="#FFFFFF" />
+  <circle cx="48" cy="19" r="7" stroke="#BAE6FD" stroke-opacity="0.55" stroke-width="1.5" />
+</svg>
